@@ -31,8 +31,21 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
+import { useAtom } from "jotai";
+import { eventsAtom } from "@/lib/hooks";
 
 import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+
+interface Event {
+    eventName: string;
+    description: string;
+    startDate: Date;
+    endDate: Date;
+    location?: string;
+}
+
 const formSchema = z.object({
     eventName: z.string().min(1),
     description: z.string().min(1),
@@ -40,10 +53,9 @@ const formSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
 });
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
 
 export function SubmitEvent() {
+    const [events, setEvents] = useAtom(eventsAtom);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -52,7 +64,10 @@ export function SubmitEvent() {
         },
     });
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+        // console.log(values);
+        // add the values to the events to the hook
+        setEvents([...events, values]);
+        console.log(events);
     }
 
 	return (
