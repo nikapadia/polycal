@@ -37,6 +37,7 @@ import { eventsAtom } from "@/lib/hooks";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { DialogClose } from "@radix-ui/react-dialog";
 
 interface Event {
     eventName: string;
@@ -63,11 +64,19 @@ export function SubmitEvent() {
             endDate: new Date(),
         },
     });
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        // console.log(values);
-        // add the values to the events to the hook
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setEvents([...events, values]);
-        console.log(events);
+        // make a post request to the api using the values
+        const response = await fetch("http://localhost:3001/api/events", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(values),
+        });
+        if (!response.ok) {
+            console.error(response);
+        }
     }
 
 	return (
