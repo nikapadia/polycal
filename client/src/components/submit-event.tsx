@@ -31,21 +31,13 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { useAtom } from "jotai";
-import { eventsAtom } from "@/lib/hooks";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import {useState} from "react";
 
-interface Event {
-    event_name: string;
-    description: string;
-    start_date: Date;
-    end_date: Date;
-    location?: string;
-}
 
 const formSchema = z.object({
     event_name: z.string().min(1),
@@ -53,22 +45,46 @@ const formSchema = z.object({
     location: z.string().optional(),
     start_date: z.date(),
     end_date: z.date(),
+    all_day: z.boolean(),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    status: z.enum(["pending", "approved", "rejected"]).optional(),
 });
 
 export function SubmitEvent() {
-    const [events, setEvents] = useAtom(eventsAtom);
     const [open, setOpen] = useState(false);
+    const currentTime = new Date();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            start_date: new Date(),
-            end_date: new Date(),
+            start_date: currentTime,
+            end_date: currentTime,
+            start_time: `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`,
+            end_time: `${(currentTime.getHours()+1).toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`,
         },
     });
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        // setEvents([...events, values]);
         setOpen(false);
-        // make a post request to the api using the values
+        const start_date = new Date(values.start_date);
+        const start_time = values.start_time ? values.start_time.split(":") : ["00", "00"];
+        const start_hours = parseInt(start_time[0]);
+        const start_minutes = parseInt(start_time[1]);
+        start_date.setHours(start_hours);
+        start_date.setMinutes(start_minutes);
+        start_date.setSeconds(0);
+        start_date.setMilliseconds(0);
+        values.start_date = start_date;
+        const end_date = new Date(values.end_date);
+        const end_time = values.end_time ? values.end_time.split(":") : ["00", "00"];
+        const end_hours = parseInt(end_time[0]);
+        const end_minutes = parseInt(end_time[1]);
+        end_date.setHours(end_hours);
+        end_date.setMinutes(end_minutes);
+        end_date.setSeconds(0);
+        end_date.setMilliseconds(0);
+        values.end_date = end_date;        
+        values.status = "pending";
+
         const response = await fetch("http://localhost:3001/api/events", {
             method: "POST",
             headers: {
@@ -134,26 +150,64 @@ export function SubmitEvent() {
                                 <FormMessage />
                                 </FormItem>
                             )}/>
+                            <div className="flex items-center">
+                                <FormField
+                                control={form.control}
+                                name="start_date"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="pr-2">Start</FormLabel>
+                                    <FormControl>
+                                        <DatePicker {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                <FormField
+                                control={form.control}
+                                name="start_time"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormControl>
+                                        <input type="time" {...field} value={field.value ? field.value.toString() : ''} className="mt-2 pl-2" />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
+                            <div className="flex items-center">
+                                <FormField
+                                control={form.control}
+                                name="end_date"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="pr-2">End</FormLabel>
+                                    <FormControl>
+                                        <DatePicker {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                <FormField
+                                control={form.control}
+                                name="end_time"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormControl>
+                                        <input type="time" {...field} value={field.value ? field.value.toString() : ''} className="mt-2 pl-2" />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
                             <FormField
                             control={form.control}
-                            name="start_date"
+                            name="all_day"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Start Date</FormLabel>
+                                <FormLabel>All Day</FormLabel>
                                 <FormControl>
-                                    <DatePicker {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}/>
-                            <FormField
-                            control={form.control}
-                            name="end_date"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>End Date</FormLabel>
-                                <FormControl>
-                                    <DatePicker {...field} />
+                                    <input type="checkbox" {...field} value={field.value ? "true" : "false"} defaultChecked/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>

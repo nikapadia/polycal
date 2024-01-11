@@ -1,4 +1,4 @@
-import {atom} from 'jotai';
+import {atom} from "jotai";
 
 interface Event {
     eventName: string;
@@ -8,4 +8,5 @@ interface Event {
     location?: string;
 }
 
-export const eventsAtom = atom<Event[]>([]);
+const sidebarOpenAtom = atom<boolean>(true);
+export {sidebarOpenAtom};

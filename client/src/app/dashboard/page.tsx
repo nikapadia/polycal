@@ -1,7 +1,6 @@
+// "use client";
 import { getServerSession } from "next-auth";
 import { Button } from "@/components/ui/button";
-import { useAtom } from "jotai";
-import { eventsAtom } from "@/lib/hooks";
 import { DataTable } from "./data-table";
 import { Event, columns } from "./columns";
 // import testData from "./testData.json";
@@ -63,6 +62,7 @@ async function getEventData(): Promise<Event[]> {
 export default async function Dashboard() {
     const session = await getServerSession();
     const eventData = await getEventData();
+
     return (
         <div className="hidden space-y-6 p-8 md:block">
             <div className="space-y-0.5">
@@ -72,22 +72,6 @@ export default async function Dashboard() {
                 </p>
             </div>
             <DataTable columns={columns} data={eventData} />
-            {/* Show the events from the atom */}
-            {/* <div className="flex flex-col space-y-4">
-                <h3 className="text-xl font-bold tracking-tight">Events</h3>
-                <div className="flex flex-col space-y-2">
-                    {events.map((event) => (
-                        <div className="flex flex-col space-y-1">
-                            <span className="text-gray-500">
-                                {event.start_date.toDateString()}
-                            </span>
-                            <span className="text-gray-500">
-                                {event.eventName}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div> */}
         </div>
     );
 }

@@ -99,5 +99,27 @@
     "status": "approved",
     "color": "#aa00ff",
     "all_day": true
+  },
+  {
+    "id": 11,
+    "event_name": "Timed Event",
+    "description": "This event has been submitted with a custom start and end time",
+    "location": "Nowhere",
+    "start_date": "2024-01-12T01:30:00.000Z",
+    "end_date": "2024-01-12T02:00:00.000Z",
+    "all_day": false,
+    "start_time": "20:30",
+    "end_time": "21:00"
+  },
+  {
+    "id": 12,
+    "event_name": "Timed event 2",
+    "description": "gamer",
+    "start_date": "2024-01-11T22:08:00.000Z",
+    "end_date": "2024-01-11T23:08:00.000Z",
+    "all_day": false,
+    "start_time": "17:08",
+    "end_time": "18:08",
+    "status": "pending"
   }
 ]

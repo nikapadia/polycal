@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/popover";  
 import { useState } from 'react';
 import tinycolor from 'tinycolor2';
+import { sidebarOpenAtom } from '@/app/page';
+import { useAtom } from 'jotai';
 
 interface CalendarEvent {
     id: number;
@@ -30,25 +32,25 @@ function CalendarHeader() {
     return (
         <>
             <div className="flex h-5 text-center">
-                <div className="grow flex-shrink basis-0 border-r border-l border-t">
+                <div className="grow flex-shrink basis-0 border-r border-l ">
                     <span className="text-[11px] text-gray-500 uppercase">Sun</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Mon</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Tue</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Wed</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Thu</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Fri</span>
                 </div>
-                <div className="grow flex-shrink basis-0 border-r border-t">
+                <div className="grow flex-shrink basis-0 border-r ">
                     <span className="text-[11px] text-gray-500 uppercase">Sat</span>
                 </div>
             </div>
@@ -156,7 +158,6 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
             return event.color ?? "#d50000"
         }
     }
-    const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<>
@@ -183,7 +184,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                                         <div className="rounded-lg border-4" style={{borderColor: event.color}}></div>
                                     </div>
                                     <span className="text-xs font-normal mr-1">
-                                        {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:maaa')}
+                                        {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:mmaaa')}
                                     </span>
                                     <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
                                         {event.event_name}
@@ -241,6 +242,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 
 
 export function Calendar() {
+    const [sidebarOpen] = useAtom<boolean>(sidebarOpenAtom);
     const start = new Date(2024, 0, 1);
     const end = new Date(2024, 1, 0);   
     
@@ -264,11 +266,11 @@ export function Calendar() {
 
     return (
         <>
-            <div className="pl-2 flex flex-col h-full">
+            <div className="flex flex-col">
                 <CalendarHeader />
                 <div className="flex grow flex-shrink basis-0 flex-col" >
                     {weeks.map((week, index) => (
-                        <div className="grow flex-shrink basis-0" key={index} role="row">
+                        <div className="grow shrink basis-0" key={index} role="row">
                             <CalendarCellHeader start={week[0]} end={week[week.length - 1]} />
                             <div className="border-b" role="cells">
                                 <div className="flex relative text-2xl min-h-[4em] border-r">
