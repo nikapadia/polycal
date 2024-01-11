@@ -37,35 +37,37 @@ import { eventsAtom } from "@/lib/hooks";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { DialogClose } from "@radix-ui/react-dialog";
+import {useState} from "react";
 
 interface Event {
-    eventName: string;
+    event_name: string;
     description: string;
-    startDate: Date;
-    endDate: Date;
+    start_date: Date;
+    end_date: Date;
     location?: string;
 }
 
 const formSchema = z.object({
-    eventName: z.string().min(1),
+    event_name: z.string().min(1),
     description: z.string().min(1),
     location: z.string().optional(),
-    startDate: z.date(),
-    endDate: z.date(),
+    start_date: z.date(),
+    end_date: z.date(),
 });
 
 export function SubmitEvent() {
     const [events, setEvents] = useAtom(eventsAtom);
+    const [open, setOpen] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            startDate: new Date(),
-            endDate: new Date(),
+            start_date: new Date(),
+            end_date: new Date(),
         },
     });
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        setEvents([...events, values]);
+        // setEvents([...events, values]);
+        setOpen(false);
         // make a post request to the api using the values
         const response = await fetch("http://localhost:3001/api/events", {
             method: "POST",
@@ -81,7 +83,7 @@ export function SubmitEvent() {
 
 	return (
 		<>
-			<Dialog>
+			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogTrigger asChild>
 					<Button className="hidden md:block" variant={"secondary"}>
 						Submit Event
@@ -98,7 +100,7 @@ export function SubmitEvent() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                             control={form.control}
-                            name="eventName"
+                            name="event_name"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Event Name</FormLabel>
@@ -134,7 +136,7 @@ export function SubmitEvent() {
                             )}/>
                             <FormField
                             control={form.control}
-                            name="startDate"
+                            name="start_date"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Start Date</FormLabel>
@@ -146,7 +148,7 @@ export function SubmitEvent() {
                             )}/>
                             <FormField
                             control={form.control}
-                            name="endDate"
+                            name="end_date"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>End Date</FormLabel>

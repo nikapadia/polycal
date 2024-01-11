@@ -1,74 +1,103 @@
 [
   {
     "id": 1,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "quam nec dui luctus rutrum nulla tellus in sagittis dui",
+    "description": "purus phasellus in felis donec semper sapien a libero nam",
+    "location": "Nice",
+    "start_date": "2024-01-18T02:00:16Z",
+    "end_date": "2024-01-20T04:50:02Z",
+    "status": "approved",
+    "color": "#d50000"
   },
   {
     "id": 2,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "sed interdum venenatis turpis enim blandit mi in porttitor pede justo",
+    "description": "augue quam sollicitudin vitae consectetuer eget rutrum at lorem integer",
+    "location": "Sancang",
+    "start_date": "2024-01-30T05:33:34Z",
+    "end_date": "2024-01-20T11:41:47Z",
+    "status": "approved",
+    "color": "#ff4081"
   },
   {
     "id": 3,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "luctus tincidunt nulla mollis",
+    "description": "cras in purus eu magna vulputate luctus cum sociis natoque penatibus et magnis dis parturient montes",
+    "location": "Esperanza",
+    "start_date": "2024-01-16T03:33:34Z",
+    "end_date": "2024-01-17T23:09:04Z",
+    "status": "approved",
+    "color": "#ff6d00"
   },
   {
     "id": 4,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "libero non mattis pulvinar nulla pede ullamcorper augue a suscipit nulla elit ac nulla",
+    "description": "montes nascetur ridiculus mus etiam vel augue vestibulum rutrum rutrum neque aenean auctor",
+    "location": "Aconibe",
+    "start_date": "2024-01-03T06:14:07Z",
+    "end_date": "2024-01-10T16:01:31Z",
+    "status": "approved",
+    "color": "#d50000"
+  },
+  {
+    "id": 5,
+    "event_name": "ridiculus mus vivamus vestibulum sagittis sapien cum sociis natoque penatibus et magnis",
+    "description": "cubilia curae mauris viverra diam vitae quam suspendisse potenti nullam porttitor lacus",
+    "location": "Mimbaan Timur",
+    "start_date": "2024-01-04T08:53:19Z",
+    "end_date": "2024-01-23T11:24:25Z",
+    "status": "approved",
+    "color": "#aa00ff"
   },
   {
     "id": 6,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "sit amet cursus id turpis integer aliquet massa id lobortis",
+    "description": "pellentesque at nulla suspendisse potenti cras in purus eu magna vulputate luctus cum sociis",
+    "location": "Xinzhuang",
+    "start_date": "2024-01-10T06:36:26Z",
+    "end_date": "2024-01-25T22:51:39Z",
+    "status": "approved",
+    "color": "#d50000"
   },
   {
     "id": 7,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "morbi non quam nec dui luctus rutrum nulla tellus in",
+    "description": "id turpis integer aliquet massa id lobortis convallis tortor risus dapibus",
+    "location": "Futuroscope",
+    "start_date": "2024-01-15T16:49:40Z",
+    "end_date": "2024-01-06T15:50:02Z",
+    "status": "approved",
+    "color": "#00c853"
   },
   {
     "id": 8,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse",
+    "description": "vitae quam suspendisse potenti nullam porttitor lacus at turpis donec",
+    "location": "Parchowo",
+    "start_date": "2024-01-30T14:57:46Z",
+    "end_date": "2024-01-18T10:32:46Z",
+    "status": "approved",
+    "color": "#aa00ff"
   },
   {
     "id": 9,
-    "eventName": "My Event",
-    "description": "Where cool stuff happens",
-    "location": "DCC 308",
-    "startDate": "2024-01-09T23:18:06.992Z",
-    "endDate": "2024-01-09T23:18:06.992Z"
+    "event_name": "augue vestibulum ante ipsum primis in faucibus orci luctus et",
+    "description": "volutpat erat quisque erat eros viverra eget congue eget semper rutrum nulla",
+    "location": "San Isidro",
+    "start_date": "2024-01-08T02:14:45Z",
+    "end_date": "2024-01-30T00:18:50Z",
+    "status": "approved",
+    "color": "#aa00ff"
   },
   {
-    "id": 9,
-    "eventName": "Test",
-    "description": "Test",
-    "location": "Test",
-    "startDate": "2024-01-09T23:53:01.056Z",
-    "endDate": "2024-01-09T23:53:01.056Z"
+    "id": 10,
+    "event_name": "HW1 Due",
+    "description": "nibh fusce lacus purus aliquet at feugiat non pretium quis lectus",
+    "location": "Nihommatsu",
+    "start_date": "2024-01-21T02:01:35Z",
+    "end_date": "2024-01-02T22:52:58Z",
+    "status": "approved",
+    "color": "#aa00ff",
+    "all_day": true
   }
 ]

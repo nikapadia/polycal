@@ -32,7 +32,11 @@ app.post("/api/events", (req, res) => {
 
 // Get all events
 app.get("/api/events", (req, res) => {
-    res.json(testData);
+    if (req.body.limit && req.body.limit < testData.length) {
+        return res.json(testData.slice(0, req.body.limit));
+    } else {
+        return res.json(testData);
+    }
 });
 
 // Get specific event
@@ -45,7 +49,7 @@ app.get("/api/events/:id", (req, res) => {
 });
 
 // Update specific event
-app.put("/api/events/:id", (req, res) => {
+app.patch("/api/events/:id", (req, res) => {
     const event = testData.find(event => event.id === parseInt(req.params.id));
     if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -53,12 +57,13 @@ app.put("/api/events/:id", (req, res) => {
     if (!req.body.eventName || !req.body.description || !req.body.location || !req.body.startDate || !req.body.endDate) {
         return res.status(400).json({ message: "Please provide all required fields" });
     }
+    // update the event assume that not all fields are updated
     event.eventName = req.body.eventName;
     event.description = req.body.description;
     event.location = req.body.location;
     event.startDate = req.body.startDate;
     event.endDate = req.body.endDate;
-
+        
     fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(testData, null, 2));
     res.json({ message: "Event updated" });
 });

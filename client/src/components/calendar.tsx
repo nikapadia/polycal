@@ -1,20 +1,23 @@
 "use client"
 
-import {format, set} from 'date-fns';
-import TestData from "./testData.json";
+import {format, getMinutes} from 'date-fns';
+import TestData from "../server/events.json";
+import { AlignLeft, MapPin, CalendarIcon, CircleDashed, XCircle } from "lucide-react"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";  
+import { useState } from 'react';
+import tinycolor from 'tinycolor2';
 
 interface CalendarEvent {
     id: number;
     user_id: number;
-    title: string;
+    event_name: string;
     description: string;
-    start_time: string;
-    end_time: string;
+    start_date: string;
+    end_date: string;
     all_day: boolean;
     location: string;
     created_at: string;
@@ -75,21 +78,53 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
 }
 
 function CalendarCell({date}: {date: Date}) {
+    const [isOpen, setIsOpen] = useState(false);
+
     // go through testData and find events that have the same month, year and day as date
     const events = TestData.filter((event) => {
-        const eventDate = new Date(event.start_time);
+        const eventDate = new Date(event.start_date);
         return eventDate.getFullYear() === date.getFullYear() && eventDate.getMonth() === date.getMonth() && eventDate.getDate() === date.getDate();
     });
     // convert events to CalendarEvent[]
     const calendarEvents = events.map((event) => {
         return event as CalendarEvent;
     });
+
+    const maxEventsToShow = 4;
+    const additionalEvents = calendarEvents.length - maxEventsToShow;
+
     return (
         <>
             <div className="flex flex-col grow flex-shrink basis-0 border-l w-[14.29%]" role="gridcell">
-                {calendarEvents.map((event, index) => (
+                {calendarEvents.slice(0, maxEventsToShow).map((event, index) => (
                     <CalendarEvent key={event.id || index} event={event} />
                 ))}
+                {/* Overflow */}
+                {additionalEvents > 0 && (
+                    <Popover>
+                        <PopoverTrigger>
+                        <div className="h-6 box-border pr-2 top-0 w-full select-none" role="note">
+                                <div className="h-[22px] px-2 text-gray-700 text-xs font-semibold leading-5 rounded flex items-center hover:bg-[#f1f3f4]" role="button">
+                                    {additionalEvents} more
+                            </div>
+                        </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-96" side="bottom" sideOffset={-145}>
+                            <div className="flex relative">
+                                <div className="space-y-2 w-full">
+                                    <h4 className="font-medium leading-none">
+                                        {format(date, 'EEEE, MMMM do')}
+                                    </h4>
+                                    <div className="flex flex-col grow flex-shrink basis-0">
+                                        {calendarEvents.map((event, index) => (
+                                            <CalendarEvent key={event.id || index} event={event} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                )}
             </div>
         </>
     )
@@ -98,36 +133,104 @@ function CalendarCell({date}: {date: Date}) {
 
 
 function CalendarEvent({ event }: { event: CalendarEvent }) {
+    function styleCalendarEvent() {
+        if (event.status === 'rejected') {
+            let color = tinycolor(event.color ?? "#d50000").darken(30).toHex();
+            return `repeating-linear-gradient(
+                -45deg,
+                ${event.color ?? "#d50000"},
+                ${event.color ?? "#d50000"} 10px,
+                #${color} 10px,
+                #${color} 20px
+            )`
+        } else if (event.status === 'pending') {
+            let color = tinycolor(event.color ?? "#d50000").lighten(30).toHex();
+            return `repeating-linear-gradient(
+                45deg,
+                ${event.color ?? "#d50000"},
+                ${event.color ?? "#d50000"} 10px,
+                #${color} 10px,
+                #${color} 20px
+            )`
+        } else {
+            return event.color ?? "#d50000"
+        }
+    }
+    const [isOpen, setIsOpen] = useState(false);
+
 	return (
 		<>
 			<Popover>
 				<PopoverTrigger>
-					<div
-						className="h-6 box-border pr-2 top-0 w-full select-none"
-						role="note"
-					>
-						<div
-							className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]"
-							style={{ backgroundColor: event.color }}
-							role="button"
-						>
-							<span className="flex items-center overflow-hidden">
-								<span className="text-xs whitespace-nowrap font-semibold">
-									{event.title}
-								</span>
-							</span>
-						</div>
+					<div className="h-6 box-border pr-2 top-0 w-full select-none" role="note">
+                        {event.all_day && (
+                            <div className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent()}} role="button" >
+                                <span className="flex items-center overflow-hidden">
+                                    {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
+                                    {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
+                                    <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
+                                        {event.event_name}
+                                    </span>
+                                </span>
+                            </div>
+                        )}
+                        {!event.all_day && (
+                            <div className="h-[22px] px-2 text-xs leading-5 rounded flex items-center hover:bg-neutral-100" role="button">
+                                <span className="flex items-center overflow-hidden">
+                                    {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
+                                    {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
+                                    <div className="flex items-center grow-0 shrink-0 basis-0 justify-center mr-[6px]">
+                                        <div className="rounded-lg border-4" style={{borderColor: event.color}}></div>
+                                    </div>
+                                    <span className="text-xs font-normal mr-1">
+                                        {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:maaa')}
+                                    </span>
+                                    <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
+                                        {event.event_name}
+                                    </span>
+                                </span>
+                            </div>      
+                        )}
 					</div>
 				</PopoverTrigger>
-				<PopoverContent>
+				<PopoverContent className="w-96" side="right" align="start">
 					<div className="grid gap-4">
 						<div className="space-y-2">
-							<h4 className="font-medium leading-none">
-								{event.title}
+							<h4 className="font-medium leading-5">
+								{event.event_name}
 							</h4>
-							<p className="text-sm text-muted-foreground">
-								{event.description}
-							</p>
+                            <span className="text-sm text-muted-foreground">
+                                {format(new Date(event.start_date), 'EEEE, MMMM d')}
+                                {!event.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
+                                {/* {new Date(event.start_date).getMinutes() !== new Date(event.end_date).getMinutes() ? ' - ' + format(new Date(event.end_date), 'EEEE, MMMM d') : ''} */}
+                            </span>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-3">
+                                    <div className="max-h-14">
+                                        <AlignLeft size={20} className="text-neutral-950"/>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            {event.description}
+                                        </p>
+                                    </div>
+                                </div>
+                                {event.location && (
+                                <a href={`https://www.google.com/maps/search/?api=1&query=${event.location}`} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground select-text">
+                                    <div className="flex items-center gap-3 hover:bg-slate-100">
+                                        <MapPin size={20} className="text-neutral-950"/>
+                                            {event.location}
+                                    </div>
+                                </a>
+                                )}
+                                {event.calendar_group && (
+                                <div className="flex items-center gap-3">
+                                    <CalendarIcon size={20} className="text-neutral-950"/>
+                                    <p className="text-sm text-muted-foreground">
+                                        {event.calendar_group}
+                                    </p>
+                                </div>)}                                        
+                            </div>
 						</div>
 					</div>
 				</PopoverContent>

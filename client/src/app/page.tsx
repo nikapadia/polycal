@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/theme-toggle"
 import { Calendar }  from "@/components/calendar"
-import { atom } from "jotai";
+import { Sidebar } from "@/components/sidebar"
 
 export default function Home() {
     return (
