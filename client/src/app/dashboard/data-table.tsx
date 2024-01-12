@@ -62,7 +62,7 @@ export function DataTable<TData, TValue>({
             <div className="flex items-center py-4 gap-3">
                 <div className="relative max-w-sm">
                     <Input
-                        placeholder="Filter statuses..."
+                        placeholder="Search..."
                         value={(table.getColumn(sortBy)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn(sortBy)?.setFilterValue(event.target.value)

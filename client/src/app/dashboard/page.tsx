@@ -2,7 +2,8 @@
 import { getServerSession } from "next-auth";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "./data-table";
-import { Event, columns } from "./columns";
+import { Event, ColumnsEvents } from "./columns-events";
+import { User, ColumnsUsers } from "./columns-users";
 // import testData from "./testData.json";
 import testData from "../../server/events.json";
 
@@ -58,10 +59,29 @@ async function getEventData(): Promise<Event[]> {
     }));
 }
 
+async function getUserData(): Promise<User[]> {
+    const response = await fetch("http://localhost:3001/api/users", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    return response.json().then((data) => data.map((item: any) => {
+        return {
+            id: item.id,
+            first_name: item.first_name,
+            last_name: item.last_name,
+            email: item.email,
+            created_at: new Date(item.created_at)
+        }
+    }));
+}
 
 export default async function Dashboard() {
     const session = await getServerSession();
     const eventData = await getEventData();
+    const userData = await getUserData();
 
     return (
         <div className="hidden space-y-6 p-8 md:block">
@@ -71,7 +91,8 @@ export default async function Dashboard() {
                     Welcome back, {session?.user?.name}!
                 </p>
             </div>
-            <DataTable columns={columns} data={eventData} />
+            <DataTable columns={ColumnsEvents} data={eventData} />
+            <DataTable columns={ColumnsUsers} data={userData} />
         </div>
     );
 }

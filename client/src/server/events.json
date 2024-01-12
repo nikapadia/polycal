@@ -120,6 +120,7 @@
     "all_day": false,
     "start_time": "17:08",
     "end_time": "18:08",
-    "status": "pending"
+    "status": "pending",
+    "calendar_group": "1"
   }
 ]

@@ -24,7 +24,7 @@ export type Event = {
     status: "pending" | "approved" | "rejected";
 };
 
-export const columns: ColumnDef<Event>[] = [
+export const ColumnsEvents: ColumnDef<Event>[] = [
     {
         id: "actions",
         cell: ({ row }) => {

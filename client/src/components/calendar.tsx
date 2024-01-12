@@ -178,8 +178,8 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                         {!event.all_day && (
                             <div className="h-[22px] px-2 text-xs leading-5 rounded flex items-center hover:bg-neutral-100" role="button">
                                 <span className="flex items-center overflow-hidden">
-                                    {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
-                                    {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
+                                    {event.status === 'pending' && <CircleDashed className="h-4 w-4 mr-2" strokeWidth="2px" />}
+                                    {event.status === 'rejected' && <XCircle className="h-4 w-4 mr-2" strokeWidth="2px" />}
                                     <div className="flex items-center grow-0 shrink-0 basis-0 justify-center mr-[6px]">
                                         <div className="rounded-lg border-4" style={{borderColor: event.color}}></div>
                                     </div>

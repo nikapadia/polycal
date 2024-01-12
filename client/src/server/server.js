@@ -3,7 +3,8 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const testData = require("./events.json");
+const eventsData = require("./events.json");
+const usersData = require("./users.json");
 const fs = require("fs");
 const path = require("path");
 
@@ -21,10 +22,10 @@ app.listen(3001, () => {
 // Create a new event
 app.post("/api/events", (req, res) => {
     console.log(req.body);
-    const newEvent = { id: testData.length + 1, ...req.body };
+    const newEvent = { id: eventsData.length + 1, ...req.body };
     // add the new event to the database (events.json)
-    testData.push(newEvent);
-    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(testData, null, 2));
+    eventsData.push(newEvent);
+    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(eventsData, null, 2));
     
     // return the new event
     res.json({ message: "Event created" });
@@ -32,16 +33,16 @@ app.post("/api/events", (req, res) => {
 
 // Get all events
 app.get("/api/events", (req, res) => {
-    if (req.body.limit && req.body.limit < testData.length) {
-        return res.json(testData.slice(0, req.body.limit));
+    if (req.body.limit && req.body.limit < eventsData.length) {
+        return res.json(eventsData.slice(0, req.body.limit));
     } else {
-        return res.json(testData);
+        return res.json(eventsData);
     }
 });
 
 // Get specific event
 app.get("/api/events/:id", (req, res) => {
-    const event = testData.find(event => event.id === parseInt(req.params.id));
+    const event = eventsData.find(event => event.id === parseInt(req.params.id));
     if (!event) {
         return res.status(404).json({ message: "Event not found" });
     }
@@ -50,7 +51,7 @@ app.get("/api/events/:id", (req, res) => {
 
 // Update specific event
 app.patch("/api/events/:id", (req, res) => {
-    const event = testData.find(event => event.id === parseInt(req.params.id));
+    const event = eventsData.find(event => event.id === parseInt(req.params.id));
     if (!event) {
         return res.status(404).json({ message: "Event not found" });
     }
@@ -64,19 +65,29 @@ app.patch("/api/events/:id", (req, res) => {
     event.startDate = req.body.startDate;
     event.endDate = req.body.endDate;
         
-    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(testData, null, 2));
+    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(eventsData, null, 2));
     res.json({ message: "Event updated" });
 });
 
 // Delete specific event
 app.delete("/api/events/:id", (req, res) => {
-    const event = testData.find(event => event.id === parseInt(req.params.id));
+    const event = eventsData.find(event => event.id === parseInt(req.params.id));
     if (!event) {
         return res.status(404).json({ message: "Event not found" });
     }
-    const index = testData.indexOf(event);
-    testData.splice(index, 1);
-    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(testData, null, 2));
+    const index = eventsData.indexOf(event);
+    eventsData.splice(index, 1);
+    fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(eventsData, null, 2));
     res.json({ message: "Event deleted" });
 });
 
+
+// ***************** USERS *****************
+// Get all users
+app.get("/api/users", (req, res) => {
+    if (req.body.limit && req.body.limit < usersData.length) {
+        return res.json(usersData.slice(0, req.body.limit));
+    } else {
+        return res.json(usersData);
+    }
+});
