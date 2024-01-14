@@ -15,16 +15,14 @@ import { useAtom } from 'jotai';
 
 interface CalendarEvent {
     id: number;
-    user_id: number;
     event_name: string;
     description: string;
     start_date: string;
     end_date: string;
     all_day: boolean;
     location: string;
-    created_at: string;
     status: string;
-    calendar_group: string;
+    calendar_group?: string;
     color: string;
 }
 
@@ -64,12 +62,13 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
     for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
         dates.push(new Date(dt));
     }
+    let today = new Date();
     return (
         <>
             <div className="inset-0 flex text-center">
                 {dates.map((date, index) => (
                     <div key={index} className={`grow flex-shrink basis-0 border-l ${index === dates.length - 1 ? 'border-r' : ''}`}>
-                        <span className="text-xs">
+                        <span className={`text-xs rounded-[50%] p-1 ${date.getDate() === today.getDate() ? 'bg-blue-600 text-white' : ''}`}>
                             {date.getDate() === 1 ? format(date, 'MMM d') : format(date, 'd')}
                         </span>
                     </div>
@@ -94,10 +93,11 @@ function CalendarCell({date}: {date: Date}) {
 
     const maxEventsToShow = 4;
     const additionalEvents = calendarEvents.length - maxEventsToShow;
+    const today = new Date();
 
     return (
         <>
-            <div className="flex flex-col grow flex-shrink basis-0 border-l w-[14.29%]" role="gridcell">
+            <div className="flex flex-col grow flex-shrink basis-0 border-l w-[14.29%]" style={{ color: `${today.getDate() > date.getDate() ? 'rgba(32, 33, 36, .38)' : ''}`}} role="gridcell">
                 {calendarEvents.slice(0, maxEventsToShow).map((event, index) => (
                     <CalendarEvent key={event.id || index} event={event} />
                 ))}
@@ -135,10 +135,13 @@ function CalendarCell({date}: {date: Date}) {
 
 
 function CalendarEvent({ event }: { event: CalendarEvent }) {
+    const today = new Date();
+    const eventDate = new Date(event.start_date);
     function styleCalendarEvent() {
+        let style = "";
         if (event.status === 'rejected') {
             let color = tinycolor(event.color ?? "#d50000").darken(30).toHex();
-            return `repeating-linear-gradient(
+            style = `repeating-linear-gradient(
                 -45deg,
                 ${event.color ?? "#d50000"},
                 ${event.color ?? "#d50000"} 10px,
@@ -147,7 +150,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
             )`
         } else if (event.status === 'pending') {
             let color = tinycolor(event.color ?? "#d50000").lighten(30).toHex();
-            return `repeating-linear-gradient(
+            style = `repeating-linear-gradient(
                 45deg,
                 ${event.color ?? "#d50000"},
                 ${event.color ?? "#d50000"} 10px,
@@ -155,8 +158,13 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                 #${color} 20px
             )`
         } else {
-            return event.color ?? "#d50000"
+            style = event.color ?? "#d50000"
         }
+
+        if (today.getDate() > eventDate.getDate() && today.getMonth() === eventDate.getMonth() && today.getFullYear() === eventDate.getFullYear()) {
+            style = `${style}80`
+        }
+        return style;
     }
 
 	return (
@@ -165,7 +173,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 				<PopoverTrigger>
 					<div className="h-6 box-border pr-2 top-0 w-full select-none" role="note">
                         {event.all_day && (
-                            <div className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent()}} role="button" >
+                            <div className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent(), color: `${today.getDate() > eventDate.getDate() ? '#a3a3a3' : ''}`}} role="button" >
                                 <span className="flex items-center overflow-hidden">
                                     {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
                                     {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
@@ -266,13 +274,13 @@ export function Calendar() {
 
     return (
         <>
-            <div className="flex flex-col">
+            <div className="flex flex-col h-full">
                 <CalendarHeader />
                 <div className="flex grow flex-shrink basis-0 flex-col" >
                     {weeks.map((week, index) => (
-                        <div className="grow shrink basis-0" key={index} role="row">
+                        <div className="flex flex-col grow shrink basis-0" key={index} role="row">
                             <CalendarCellHeader start={week[0]} end={week[week.length - 1]} />
-                            <div className="border-b" role="cells">
+                            <div className="border-b grow shrink basis-0" role="cells">
                                 <div className="flex relative text-2xl min-h-[4em] border-r">
                                     {week.map((date, index2) => (
                                         <CalendarCell key={index2} date={date} />

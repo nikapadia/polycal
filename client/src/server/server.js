@@ -1,4 +1,7 @@
-// create an express server
+/* 
+    PLEASE IGNORE THIS FILE. IT WAS USED FOR TESTING PURPOSES ONLY.
+*/
+
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -23,11 +26,9 @@ app.listen(3001, () => {
 app.post("/api/events", (req, res) => {
     console.log(req.body);
     const newEvent = { id: eventsData.length + 1, ...req.body };
-    // add the new event to the database (events.json)
     eventsData.push(newEvent);
     fs.writeFileSync(path.join(__dirname, './events.json'), JSON.stringify(eventsData, null, 2));
     
-    // return the new event
     res.json({ message: "Event created" });
 });
 
@@ -58,7 +59,6 @@ app.patch("/api/events/:id", (req, res) => {
     if (!req.body.eventName || !req.body.description || !req.body.location || !req.body.startDate || !req.body.endDate) {
         return res.status(400).json({ message: "Please provide all required fields" });
     }
-    // update the event assume that not all fields are updated
     event.eventName = req.body.eventName;
     event.description = req.body.description;
     event.location = req.body.location;

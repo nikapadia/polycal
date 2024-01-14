@@ -33,7 +33,7 @@ export function Sidebar() {
                     </div>
                 </div>
                 <div className="p-3 text-center basis-0 grow shrink">
-                    <h3 className="text-xs font-normal text-neutral-600 tracking-tight">Made with ❤️ by <a className="text-blue-600" href="https://new.rcos.io" target="_blank">RCOS</a>. <a className="text-blue-600" href="https://github.com/nikapadia/polycal" target="_blank">Source Code</a></h3>
+                    <h3 className="text-xs font-normal text-neutral-600 tracking-tight"><a className="text-blue-600" href="https://github.com/nikapadia/polycal" target="_blank">Source Code</a></h3>
                 </div>
             </div>
         </>

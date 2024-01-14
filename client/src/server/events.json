@@ -122,5 +122,28 @@
     "end_time": "18:08",
     "status": "pending",
     "calendar_group": "1"
+  },
+  {
+    "id": 13,
+    "event_name": "Is this grayed out?",
+    "description": "Cool",
+    "start_date": "2024-01-12T18:33:00.000Z",
+    "end_date": "2024-01-12T19:33:00.000Z",
+    "all_day": false,
+    "start_time": "13:33",
+    "end_time": "14:33",
+    "status": "pending"
+  },
+  {
+    "id": 14,
+    "event_name": "test",
+    "description": "test",
+    "start_date": "2024-01-11T20:48:00.000Z",
+    "end_date": "2024-01-11T21:48:00.000Z",
+    "all_day": true,
+    "start_time": "15:48",
+    "end_time": "16:48",
+    "status": "approved",
+    "color": "#00c853"
   }
 ]
