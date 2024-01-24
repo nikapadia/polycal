@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SubmitEvent } from "@/components/submit-event";
 import PolyLogo from "@/assets/poly_logo.png";
-import { Menu } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAtom } from "jotai";
 import { sidebarOpenAtom } from "@/app/page";
 import { ModeToggle } from "./theme-toggle";
@@ -65,6 +65,18 @@ export default function Navbar() {
                         <img src={PolyLogo.src} alt="logo" className="h-12 w-auto rounded-md" />
                         <span className="text-4xl pl-1">olycal</span>
                     </a>
+                    <div className="flex ml-14 justify-center items-center">
+                        <Button className="mr-2" variant={"secondary"}>Today</Button>
+                        <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
+                            <ChevronLeft />
+                        </div>
+                        <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
+                            <ChevronRight />
+                        </div>
+                        <div>
+                            <span className="text-2xl pl-1">January 2024</span>
+                        </div>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <ModeToggle />

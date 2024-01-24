@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "user_id": 1,
     "event_name": "quam nec dui luctus rutrum nulla tellus in sagittis dui",
     "description": "purus phasellus in felis donec semper sapien a libero nam",
     "location": "Nice",
@@ -11,6 +12,7 @@
   },
   {
     "id": 2,
+    "user_id": 1,
     "event_name": "sed interdum venenatis turpis enim blandit mi in porttitor pede justo",
     "description": "augue quam sollicitudin vitae consectetuer eget rutrum at lorem integer",
     "location": "Sancang",
@@ -21,6 +23,7 @@
   },
   {
     "id": 3,
+    "user_id": 1,
     "event_name": "luctus tincidunt nulla mollis",
     "description": "cras in purus eu magna vulputate luctus cum sociis natoque penatibus et magnis dis parturient montes",
     "location": "Esperanza",
@@ -31,6 +34,7 @@
   },
   {
     "id": 4,
+    "user_id": 1,
     "event_name": "libero non mattis pulvinar nulla pede ullamcorper augue a suscipit nulla elit ac nulla",
     "description": "montes nascetur ridiculus mus etiam vel augue vestibulum rutrum rutrum neque aenean auctor",
     "location": "Aconibe",
@@ -41,6 +45,7 @@
   },
   {
     "id": 5,
+    "user_id": 1,
     "event_name": "ridiculus mus vivamus vestibulum sagittis sapien cum sociis natoque penatibus et magnis",
     "description": "cubilia curae mauris viverra diam vitae quam suspendisse potenti nullam porttitor lacus",
     "location": "Mimbaan Timur",
@@ -51,6 +56,7 @@
   },
   {
     "id": 6,
+    "user_id": 1,
     "event_name": "sit amet cursus id turpis integer aliquet massa id lobortis",
     "description": "pellentesque at nulla suspendisse potenti cras in purus eu magna vulputate luctus cum sociis",
     "location": "Xinzhuang",
@@ -61,6 +67,7 @@
   },
   {
     "id": 7,
+    "user_id": 1,
     "event_name": "morbi non quam nec dui luctus rutrum nulla tellus in",
     "description": "id turpis integer aliquet massa id lobortis convallis tortor risus dapibus",
     "location": "Futuroscope",
@@ -71,6 +78,7 @@
   },
   {
     "id": 8,
+    "user_id": 1,
     "event_name": "molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse",
     "description": "vitae quam suspendisse potenti nullam porttitor lacus at turpis donec",
     "location": "Parchowo",
@@ -81,6 +89,7 @@
   },
   {
     "id": 9,
+    "user_id": 1,
     "event_name": "augue vestibulum ante ipsum primis in faucibus orci luctus et",
     "description": "volutpat erat quisque erat eros viverra eget congue eget semper rutrum nulla",
     "location": "San Isidro",
@@ -91,6 +100,7 @@
   },
   {
     "id": 10,
+    "user_id": 1,
     "event_name": "HW1 Due",
     "description": "nibh fusce lacus purus aliquet at feugiat non pretium quis lectus",
     "location": "Nihommatsu",
@@ -102,6 +112,7 @@
   },
   {
     "id": 11,
+    "user_id": 1,
     "event_name": "Timed Event",
     "description": "This event has been submitted with a custom start and end time",
     "location": "Nowhere",
@@ -113,6 +124,7 @@
   },
   {
     "id": 12,
+    "user_id": 1,
     "event_name": "Timed event 2",
     "description": "gamer",
     "start_date": "2024-01-11T22:08:00.000Z",
@@ -125,6 +137,7 @@
   },
   {
     "id": 13,
+    "user_id": 1,
     "event_name": "Is this grayed out?",
     "description": "Cool",
     "start_date": "2024-01-12T18:33:00.000Z",
@@ -136,6 +149,7 @@
   },
   {
     "id": 14,
+    "user_id": 1,
     "event_name": "test",
     "description": "test",
     "start_date": "2024-01-11T20:48:00.000Z",

@@ -1,17 +1,16 @@
 "use client"
 
-import {format, getMinutes} from 'date-fns';
-import TestData from "../server/events.json";
+import {eachDayOfInterval, endOfWeek, format, getMinutes, startOfWeek} from 'date-fns';
+// import TestData from "../server/events.json";
 import { AlignLeft, MapPin, CalendarIcon, CircleDashed, XCircle } from "lucide-react"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";  
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import tinycolor from 'tinycolor2';
-import { sidebarOpenAtom } from '@/app/page';
-import { useAtom } from 'jotai';
+import { date } from 'zod';
 
 interface CalendarEvent {
     id: number;
@@ -68,7 +67,7 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
             <div className="inset-0 flex text-center">
                 {dates.map((date, index) => (
                     <div key={index} className={`grow flex-shrink basis-0 border-l ${index === dates.length - 1 ? 'border-r' : ''}`}>
-                        <span className={`text-xs rounded-[50%] p-1 ${date.getDate() === today.getDate() ? 'bg-blue-600 text-white' : ''}`}>
+                        <span className={`text-xs rounded-[50%] p-1 ${format(date, "yyyy-MM-dd") === format(today, "yyyy-MM-dd") ? 'bg-blue-600 text-white' : ''}`}>
                             {date.getDate() === 1 ? format(date, 'MMM d') : format(date, 'd')}
                         </span>
                     </div>
@@ -78,16 +77,11 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
     )    
 }
 
-function CalendarCell({date}: {date: Date}) {
-    const [isOpen, setIsOpen] = useState(false);
-
+function CalendarCell({date, events}: {date: Date, events: CalendarEvent[]}) {
     // go through testData and find events that have the same month, year and day as date
-    const events = TestData.filter((event) => {
-        const eventDate = new Date(event.start_date);
-        return eventDate.getFullYear() === date.getFullYear() && eventDate.getMonth() === date.getMonth() && eventDate.getDate() === date.getDate();
-    });
+    
     // convert events to CalendarEvent[]
-    const calendarEvents = events.map((event) => {
+    const calendarEvents = events.map((event: CalendarEvent) => {
         return event as CalendarEvent;
     });
 
@@ -98,7 +92,7 @@ function CalendarCell({date}: {date: Date}) {
     return (
         <>
             <div className="flex flex-col grow flex-shrink basis-0 border-l w-[14.29%]" style={{ color: `${today.getDate() > date.getDate() ? 'rgba(32, 33, 36, .38)' : ''}`}} role="gridcell">
-                {calendarEvents.slice(0, maxEventsToShow).map((event, index) => (
+                {calendarEvents.slice(0, maxEventsToShow).map((event: CalendarEvent, index: number) => (
                     <CalendarEvent key={event.id || index} event={event} />
                 ))}
                 {/* Overflow */}
@@ -118,7 +112,7 @@ function CalendarCell({date}: {date: Date}) {
                                         {format(date, 'EEEE, MMMM do')}
                                     </h4>
                                     <div className="flex flex-col grow flex-shrink basis-0">
-                                        {calendarEvents.map((event, index) => (
+                                        {calendarEvents.map((event: CalendarEvent, index: number) => (
                                             <CalendarEvent key={event.id || index} event={event} />
                                         ))}
                                     </div>
@@ -248,29 +242,45 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 	);
 }
 
+function chunk(dates: Date[], arg1: number): Date[][] {
+    var R = [];
+    for (var i = 0; i < dates.length; i += arg1)
+        R.push(dates.slice(i, i + arg1));
+    return R;
+}
 
 export function Calendar() {
-    const [sidebarOpen] = useAtom<boolean>(sidebarOpenAtom);
-    const start = new Date(2024, 0, 1);
-    const end = new Date(2024, 1, 0);   
-    
-    // Adjust start to the nearest previous Sunday
-    while (start.getDay() !== 0) {
-        start.setDate(start.getDate() - 1);
-    }
-    // Adjust end to the nearest next Saturday
-    while (end.getDay() !== 6) {
-        end.setDate(end.getDate() + 1);
-    }
+    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const start = startOfWeek(new Date(2024, 0, 1));
+    const end = endOfWeek(new Date(2024, 1, 0));
 
-    const dates = [];
-    const weeks = [];
-    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-        dates.push(new Date(dt));
-    }
-    while (dates.length) {
-        weeks.push(dates.splice(0, 7));
-    }
+    const dates: Date[] = eachDayOfInterval({ start, end });
+    const weeks: Date[][] = chunk(dates, 7);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://localhost:8080/events?start_date=${format(start, "yyyy-MM-dd")}&end_date=${format(end, "yyyy-MM-dd")}`);
+                const json = await response.json();
+                setEvents(json);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+    
+        fetchData();
+    }, []);
+
+    // take the events and put them into a hash table with the date as the key
+    const eventsByDate: {[key: string]: CalendarEvent[]} = {};
+    events.forEach((event: CalendarEvent) => {
+        const date = format(new Date(event.start_date), "yyyy-MM-dd");
+        if (eventsByDate[date]) {
+            eventsByDate[date].push(event);
+        } else {
+            eventsByDate[date] = [event];
+        }
+    });
 
     return (
         <>
@@ -283,7 +293,7 @@ export function Calendar() {
                             <div className="border-b grow shrink basis-0" role="cells">
                                 <div className="flex relative text-2xl min-h-[4em] border-r">
                                     {week.map((date, index2) => (
-                                        <CalendarCell key={index2} date={date} />
+                                        <CalendarCell key={index2} date={date} events={eventsByDate[format(date, "yyyy-MM-dd")] ?? []} />
                                     ))}
                                 </div>
                             </div>
@@ -294,5 +304,3 @@ export function Calendar() {
         </>
     )
 }
-
-// Ignore this function, it's just for reference
