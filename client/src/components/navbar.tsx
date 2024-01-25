@@ -15,6 +15,8 @@ import PolyLogo from "@/assets/poly_logo.png";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAtom } from "jotai";
 import { sidebarOpenAtom } from "@/app/page";
+import { currentDatesAtom, swipeCalendarAtom } from "@/lib/hooks";
+import { format } from "date-fns";
 import { ModeToggle } from "./theme-toggle";
 
 function AuthButton() {
@@ -54,6 +56,14 @@ function AuthButton() {
 
 export default function Navbar() {
     const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
+    const [currentDates, setCurrentDates] = useAtom(currentDatesAtom);
+    const [swipeCalendar, setSwipeCalendar] = useAtom(swipeCalendarAtom);
+
+    const updateCurrentDates = (direction: number) => {
+        setCurrentDates([new Date(currentDates[0].getFullYear(), currentDates[0].getMonth() + direction, 1), new Date(currentDates[0].getFullYear(), currentDates[0].getMonth() + direction, 31)])
+        setSwipeCalendar(direction);
+    }
+
     return (
 		<>
 			<div className="w-full h-16 px-4 flex justify-between items-center border-b">
@@ -66,15 +76,21 @@ export default function Navbar() {
                         <span className="text-4xl pl-1">olycal</span>
                     </a>
                     <div className="flex ml-14 justify-center items-center">
-                        <Button className="mr-2" variant={"secondary"}>Today</Button>
-                        <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
-                            <ChevronLeft />
-                        </div>
-                        <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
-                            <ChevronRight />
-                        </div>
+                        <Button className="mr-2" variant={"secondary"} onClick={() => {setCurrentDates([new Date(new Date().setDate(1)), new Date(new Date().setDate(31))])}}>
+                            Today
+                        </Button>
+                        <button onClick={() => updateCurrentDates(-1)}>
+                            <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
+                                <ChevronLeft />
+                            </div>
+                        </button>
+                        <button onClick={() => updateCurrentDates(1)}>
+                            <div className="w-8 h-8 p-1 flex justify-center items-center hover:bg-neutral-200 rounded-full cursor-pointer">
+                                <ChevronRight />
+                            </div>
+                        </button>
                         <div>
-                            <span className="text-2xl pl-1">January 2024</span>
+                            <span className="text-2xl pl-1">{format(currentDates[0], "LLLL yyyy")}</span>
                         </div>
                     </div>
                 </div>

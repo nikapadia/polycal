@@ -18,6 +18,8 @@ func setupRouter() *gin.Engine {
 	r.ForwardedByClientIP = true
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 
+	// lmt := tollbooth.NewLimiter(1, nil)
+
 	// Ping test
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

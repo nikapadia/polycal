@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/popover";  
 import { useEffect, useState } from 'react';
 import tinycolor from 'tinycolor2';
-import { date } from 'zod';
+import { useAtom } from 'jotai';
+import { currentDatesAtom, swipeCalendarAtom } from '@/lib/hooks';
 
 interface CalendarEvent {
     id: number;
@@ -250,9 +251,11 @@ function chunk(dates: Date[], arg1: number): Date[][] {
 }
 
 export function Calendar() {
+    const [currentDates, setCurrentDates] = useAtom(currentDatesAtom);
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    const start = startOfWeek(new Date(2024, 0, 1));
-    const end = endOfWeek(new Date(2024, 1, 0));
+    const [swipeCalendar, setSwipeCalendar] = useAtom(swipeCalendarAtom);
+    const start = startOfWeek(currentDates[0])
+    const end = endOfWeek(currentDates[1]);
 
     const dates: Date[] = eachDayOfInterval({ start, end });
     const weeks: Date[][] = chunk(dates, 7);
@@ -260,7 +263,7 @@ export function Calendar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/events?start_date=${format(start, "yyyy-MM-dd")}&end_date=${format(end, "yyyy-MM-dd")}`);
+                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}`);
                 const json = await response.json();
                 setEvents(json);
             } catch (error) {
@@ -269,21 +272,24 @@ export function Calendar() {
         };
     
         fetchData();
-    }, []);
+    }, [currentDates]);
 
-    // take the events and put them into a hash table with the date as the key
+
     const eventsByDate: {[key: string]: CalendarEvent[]} = {};
-    events.forEach((event: CalendarEvent) => {
-        const date = format(new Date(event.start_date), "yyyy-MM-dd");
-        if (eventsByDate[date]) {
-            eventsByDate[date].push(event);
-        } else {
-            eventsByDate[date] = [event];
-        }
-    });
+    if (events && events.length > 0) {
+        events.forEach((event: CalendarEvent) => {
+            const date = format(new Date(event.start_date), "yyyy-MM-dd");
+            if (eventsByDate[date]) {
+                eventsByDate[date].push(event);
+            } else {
+                eventsByDate[date] = [event];
+            }
+        });
+    }
 
     return (
         <>
+            {/* <div className={`flex flex-col h-full transition-transform duration-500 ${swipeCalendar === 1 ? '-translate-x-full' : swipeCalendar === -1 ? 'translate-x-full' : ''}`}> TODO: Make this actually work.*/}
             <div className="flex flex-col h-full">
                 <CalendarHeader />
                 <div className="flex grow flex-shrink basis-0 flex-col" >

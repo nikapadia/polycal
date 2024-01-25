@@ -9,4 +9,9 @@ interface Event {
 }
 
 const sidebarOpenAtom = atom<boolean>(true);
-export {sidebarOpenAtom};
+const currentDatesAtom = atom<[Date, Date]>([new Date(new Date().setDate(1)), new Date(new Date().setDate(31))]);
+
+// hacky way to swipe calendar that probably won't work
+const swipeCalendarAtom = atom<number>(0); // 0 = current month, 1 = next month, -1 = previous month
+
+export {sidebarOpenAtom, currentDatesAtom, swipeCalendarAtom};
