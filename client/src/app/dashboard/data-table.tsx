@@ -43,7 +43,7 @@ export function DataTable<TData, TValue>({
     const [sortBy, setSortBy] = useState<string>("status");
 
 	const table = useReactTable({
-		columns, 
+		columns,
 		data, // the error here can be ignored, probably
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
@@ -82,7 +82,7 @@ export function DataTable<TData, TValue>({
                     <SelectContent align="end">
                         <SelectGroup>
                             <SelectLabel>Filter by</SelectLabel>
-                            <SelectItem value="event_name">Event Name</SelectItem>
+                            <SelectItem value="title">Event Name</SelectItem>
                             <SelectItem value="location">Location</SelectItem>
                             <SelectItem value="start_date">Start Date</SelectItem>
                             <SelectItem value="end_date">End Date</SelectItem>

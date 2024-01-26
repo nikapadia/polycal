@@ -16,7 +16,7 @@ import {format} from "date-fns";
 
 export type Event = {
     id: number;
-    event_name: string;
+    title: string;
     description: string;
     start_date: Date;
     end_date: Date;
@@ -55,7 +55,7 @@ export const ColumnsEvents: ColumnDef<Event>[] = [
     },
     {
         header: "Event Name",
-        accessorKey: "event_name",
+        accessorKey: "title",
         cell: ({ row }) => {
             const event = row.original
             return (
@@ -63,10 +63,10 @@ export const ColumnsEvents: ColumnDef<Event>[] = [
                     <TooltipProvider delayDuration={200}>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span className="truncate">{event.event_name}</span>
+                                <span className="truncate">{event.title}</span>
                             </TooltipTrigger>
                             <TooltipContent align="start" className="max-w-96">
-                                <span>{event.event_name}</span>
+                                <span>{event.title}</span>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

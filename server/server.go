@@ -1,41 +1,39 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 )
 
-var db = make(map[string]string)
+type DB struct {
+	pool *pgxpool.Pool
+}
 
-func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
+type Event struct {
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	StartDate   time.Time `json:"start_date"`
+	EndDate     time.Time `json:"end_date"`
+	Location    string    `json:"location"`
+}
+
+func setupRouter(db *DB) *gin.Engine {
 	r := gin.Default()
 	r.ForwardedByClientIP = true
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// lmt := tollbooth.NewLimiter(1, nil)
-
-	// Ping test
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	// Get user value
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
-		value, ok := db[user]
-		if ok {
-			c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
-		}
+	r.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
 	})
 
 	// Get all users
@@ -43,41 +41,6 @@ func setupRouter() *gin.Engine {
 
 	// Get all events
 	r.GET("/events", getEvents)
-
-	// Authorized group (uses gin.BasicAuth() middleware)
-	// Same than:
-	// authorized := r.Group("/")
-	// authorized.Use(gin.BasicAuth(gin.Credentials{
-	//	  "foo":  "bar",
-	//	  "manu": "123",
-	//}))
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"foo":  "bar", // user:foo password:bar
-		"manu": "123", // user:manu password:123
-	}))
-
-	/* example curl for /admin with basicauth header
-	   Zm9vOmJhcg== is base64("foo:bar")
-
-		curl -X POST \
-	  	http://localhost:8080/admin \
-	  	-H 'authorization: Basic Zm9vOmJhcg==' \
-	  	-H 'content-type: application/json' \
-	  	-d '{"value":"bar"}'
-	*/
-	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
-
-		// Parse JSON
-		var json struct {
-			Value string `json:"value" binding:"required"`
-		}
-
-		if c.Bind(&json) == nil {
-			db[user] = json.Value
-			c.JSON(http.StatusOK, gin.H{"status": "ok"})
-		}
-	})
 
 	return r
 }
@@ -95,38 +58,80 @@ func getUsers(c *gin.Context) {
 }
 
 func getEvents(c *gin.Context) {
-	// load events from tmp_data file
-	var events []map[string]interface{}
-	file, err := os.ReadFile("./tmp_data/events.json")
-	if err != nil {
-		fmt.Println(err)
+	db, exists := c.MustGet("db").(*DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
 	}
+
 	start_date := c.Query("start_date")
 	end_date := c.Query("end_date")
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	err = json.Unmarshal(file, &events)
+	status := c.Query("status")
+
+	var rows pgx.Rows
+	var err error
+
+	if status == "" && start_date != "" && end_date != "" {
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events WHERE start_date >= $1 and end_date <= $2 ORDER BY id ASC", start_date, end_date)
+	} else if status != "" && start_date != "" && end_date != "" {
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events where start_date >= $1 and end_date <= $2 and status = $3 ORDER BY id ASC", start_date, end_date, status)
+	} else if status != "" {
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events where status = $1 ORDER BY id ASC", status)
+	} else {
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events ORDER BY id ASC")
+	}
+
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Query failed"})
 	}
-	// filter events by start_date and end_date
-	if start_date != "" && end_date != "" {
-		var filteredEvents []map[string]interface{}
-		for _, event := range events {
-			if event["start_date"].(string) >= start_date && event["end_date"].(string) <= end_date {
-				filteredEvents = append(filteredEvents, event)
-			}
+
+	defer rows.Close()
+
+	var events []Event
+	for rows.Next() {
+		var event Event
+		err = rows.Scan(&event.ID, &event.Title, &event.Description, &event.StartDate, &event.EndDate, &event.Location)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Scan failed: %v\n", err)
+			os.Exit(1)
 		}
-		events = filteredEvents
+		events = append(events, event)
+
 	}
+
+	if err := rows.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error occurred during iteration: %v\n", err)
+		os.Exit(1)
+	}
+
 	c.JSON(200, events)
 }
 
-func connectDB() {
-	// connect to DB
+func NewDB() (*DB, error) {
+	err := godotenv.Load(".env")
+	pool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
+		os.Exit(1)
+	}
+	return &DB{pool: pool}, nil
+}
+
+func (db *DB) Close() {
+	db.pool.Close()
 }
 
 func main() {
-	r := setupRouter()
+	db, err := NewDB()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	r := setupRouter(db)
+
 	// Listen and Server in 0.0.0.0:8080
 	r.Run(":8080")
 }

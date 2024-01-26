@@ -40,7 +40,7 @@ import {useState} from "react";
 
 
 const formSchema = z.object({
-    event_name: z.string().min(1),
+    title: z.string().min(1),
     description: z.string().min(1),
     location: z.string().optional(),
     start_date: z.date(),
@@ -116,7 +116,7 @@ export function SubmitEvent() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                             control={form.control}
-                            name="event_name"
+                            name="title"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Event Name</FormLabel>

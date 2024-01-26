@@ -15,7 +15,7 @@ import { currentDatesAtom, swipeCalendarAtom } from '@/lib/hooks';
 
 interface CalendarEvent {
     id: number;
-    event_name: string;
+    title: string;
     description: string;
     start_date: string;
     end_date: string;
@@ -173,7 +173,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                                     {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
                                     {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
                                     <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
-                                        {event.event_name}
+                                        {event.title}
                                     </span>
                                 </span>
                             </div>
@@ -190,7 +190,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                                         {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:mmaaa')}
                                     </span>
                                     <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
-                                        {event.event_name}
+                                        {event.title}
                                     </span>
                                 </span>
                             </div>      
@@ -201,7 +201,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 					<div className="grid gap-4">
 						<div className="space-y-2">
 							<h4 className="font-medium leading-5">
-								{event.event_name}
+								{event.title}
 							</h4>
                             <span className="text-sm text-muted-foreground">
                                 {format(new Date(event.start_date), 'EEEE, MMMM d')}
