@@ -1,8 +1,8 @@
 "use client"
 
-import {eachDayOfInterval, endOfWeek, format, getMinutes, startOfWeek} from 'date-fns';
+import {eachDayOfInterval, endOfWeek, format, getMinutes, startOfWeek } from 'date-fns';
 // import TestData from "../server/events.json";
-import { AlignLeft, MapPin, CalendarIcon, CircleDashed, XCircle } from "lucide-react"
+import { AlignLeft, MapPin, CalendarIcon, XCircle } from "lucide-react"
 import {
     Popover,
     PopoverContent,
@@ -21,8 +21,8 @@ interface CalendarEvent {
     end_date: string;
     location: string;
     status: string;
-    flags: {
-        all_day: boolean;
+    flags?: {
+        all_day?: boolean;
     }
     calendar_group?: string;
     color: string;
@@ -80,10 +80,7 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
     )    
 }
 
-function CalendarCell({date, events}: {date: Date, events: CalendarEvent[]}) {
-    // go through testData and find events that have the same month, year and day as date
-    
-    // convert events to CalendarEvent[]
+function CalendarCell({date, events}: {date: Date, events: CalendarEvent[]}) {    
     const calendarEvents = events.map((event: CalendarEvent) => {
         return event as CalendarEvent;
     });
@@ -98,7 +95,7 @@ function CalendarCell({date, events}: {date: Date, events: CalendarEvent[]}) {
                 {calendarEvents.slice(0, maxEventsToShow).map((event: CalendarEvent, index: number) => (
                     <CalendarEvent key={event.id || index} event={event} />
                 ))}
-                {/* Overflow */}
+                {/* Event Overflow */}
                 {additionalEvents > 0 && (
                     <Popover>
                         <PopoverTrigger>
@@ -135,7 +132,9 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
     const today = new Date();
     const eventDate = new Date(event.start_date);
     function styleCalendarEvent() {
-        let style = "";
+        let style = event.color ?? "#d50000";
+
+        /* TODO: This code is a bit bugged, will come back later
         if (event.status === 'rejected') {
             let color = tinycolor(event.color ?? "#d50000").darken(30).toHex();
             style = `repeating-linear-gradient(
@@ -157,36 +156,41 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
         } else {
             style = event.color ?? "#d50000"
         }
-
-        if (today.getDate() > eventDate.getDate() && today.getMonth() === eventDate.getMonth() && today.getFullYear() === eventDate.getFullYear()) {
+        
+        the event is in the past and not today and not in the future
+        if (compareAsc(today, eventDate) === 1) {
             style = `${style}80`
-        }
+        }  */
+
         return style;
+    }
+
+    function dimColor(color: string) {
+        let c = tinycolor(color);
+        return c.setAlpha(0.5).toRgbString();
     }
 
 	return (
 		<>
 			<Popover>
 				<PopoverTrigger>
-					<div className="h-6 box-border pr-2 top-0 w-full select-none" role="note">
-                        {event.flags.all_day && (
-                            <div className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent(), color: `${today.getDate() > eventDate.getDate() ? '#a3a3a3' : ''}`}} role="button" >
+					<div className="h-6 box-border pr-2 top-0 w-full select-none text-black" role="note">
+                        {event.flags?.all_day && (
+                            <div className="h-[22px] px-2 text-red text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent(), color: `#d50000` }} role="button">
                                 <span className="flex items-center overflow-hidden">
-                                    {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
                                     {event.status === 'rejected' && <XCircle className="h-5 w-5 mr-2" strokeWidth="2px" />}
-                                    <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
+                                    <span className="text-xs whitespace-nowrap overflow-hidden font-medium text-white">
                                         {event.title}
                                     </span>
                                 </span>
                             </div>
                         )}
-                        {!event.flags.all_day && (
+                        {!event.flags?.all_day && (
                             <div className="h-[22px] px-2 text-xs leading-5 rounded flex items-center hover:bg-neutral-100" role="button">
                                 <span className="flex items-center overflow-hidden">
-                                    {event.status === 'pending' && <CircleDashed className="h-4 w-4 mr-2" strokeWidth="2px" />}
                                     {event.status === 'rejected' && <XCircle className="h-4 w-4 mr-2" strokeWidth="2px" />}
                                     <div className="flex items-center grow-0 shrink-0 basis-0 justify-center mr-[6px]">
-                                        <div className="rounded-lg border-4" style={{borderColor: event.color}}></div>
+                                        <div className="rounded-lg border-4" style={{borderColor: "#000000"}}></div>
                                     </div>
                                     <span className="text-xs font-normal mr-1">
                                         {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:mmaaa')}
@@ -207,7 +211,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 							</h4>
                             <span className="text-sm text-muted-foreground">
                                 {format(new Date(event.start_date), 'EEEE, MMMM d')}
-                                {!event.flags.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
+                                {!event.flags?.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
                                 {/* {new Date(event.start_date).getMinutes() !== new Date(event.end_date).getMinutes() ? ' - ' + format(new Date(event.end_date), 'EEEE, MMMM d') : ''} */}
                             </span>
                             <div className="flex flex-col gap-2">
@@ -265,9 +269,9 @@ export function Calendar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}&status=approved`);
+                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}`);
                 const json = await response.json();
-                console.log(json)
+                // console.log(json)
                 setEvents(json);
             } catch (error) {
                 console.error('Error fetching data:', error);

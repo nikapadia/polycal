@@ -97,12 +97,12 @@ export default function Navbar() {
                 <div className="flex items-center gap-4">
                     <ModeToggle />
                     <SubmitEvent />
-                    <div className="w-64">
+                    {/* <div className="w-64">
                         <Input
                             className="focus-visible:ring-0 focus-visible:ring-offset-0"
                             placeholder="Search..."
                         />
-                    </div>
+                    </div> */}
 				    <AuthButton />
                 </div>
 			</div>
