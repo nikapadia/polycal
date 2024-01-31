@@ -1,7 +1,6 @@
 "use client"
 
 import {eachDayOfInterval, endOfWeek, format, getMinutes, startOfWeek } from 'date-fns';
-// import TestData from "../server/events.json";
 import { AlignLeft, MapPin, CalendarIcon, XCircle } from "lucide-react"
 import {
     Popover,
@@ -9,7 +8,6 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";  
 import { useEffect, useState } from 'react';
-import tinycolor from 'tinycolor2';
 import { useAtom } from 'jotai';
 import { currentDatesAtom, swipeCalendarAtom } from '@/lib/hooks';
 
@@ -25,7 +23,7 @@ interface CalendarEvent {
         all_day?: boolean;
     }
     calendar_group?: string;
-    color: string;
+    color?: string;
 }
 
 function CalendarHeader() {
@@ -60,16 +58,17 @@ function CalendarHeader() {
 }
 
 function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
-    const dates = [];
+    let dates = []; // Array of dates
     for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
         dates.push(new Date(dt));
     }
-    let today = new Date();
+    const today = new Date();
     return (
         <>
             <div className="inset-0 flex text-center">
                 {dates.map((date, index) => (
                     <div key={index} className={`grow flex-shrink basis-0 border-l ${index === dates.length - 1 ? 'border-r' : ''}`}>
+                        {/* If today, add a blue circle */}
                         <span className={`text-xs rounded-[50%] p-1 ${format(date, "yyyy-MM-dd") === format(today, "yyyy-MM-dd") ? 'bg-blue-600 text-white' : ''}`}>
                             {date.getDate() === 1 ? format(date, 'MMM d') : format(date, 'd')}
                         </span>
@@ -81,7 +80,7 @@ function CalendarCellHeader({start, end}: {start: Date, end: Date}) {
 }
 
 function CalendarCell({date, events}: {date: Date, events: CalendarEvent[]}) {    
-    const calendarEvents = events.map((event: CalendarEvent) => {
+    let calendarEvents = events.map((event: CalendarEvent) => {
         return event as CalendarEvent;
     });
 
@@ -165,11 +164,6 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
         return style;
     }
 
-    function dimColor(color: string) {
-        let c = tinycolor(color);
-        return c.setAlpha(0.5).toRgbString();
-    }
-
 	return (
 		<>
 			<Popover>
@@ -249,11 +243,12 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 	);
 }
 
+// Split an array into chunks of a specified size. Can be used to split an array of dates into weeks or potentially smaller chunks (3 days, 4 days, etc.)
 function chunk(dates: Date[], arg1: number): Date[][] {
-    var R = [];
-    for (var i = 0; i < dates.length; i += arg1)
-        R.push(dates.slice(i, i + arg1));
-    return R;
+    let arr = []; 
+    for (let i = 0; i < dates.length; i += arg1)
+        arr.push(dates.slice(i, i + arg1));
+    return arr;
 }
 
 export function Calendar() {

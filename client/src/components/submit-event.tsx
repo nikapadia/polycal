@@ -49,6 +49,17 @@ const formSchema = z.object({
     start_time: z.string().optional(),
     end_time: z.string().optional(),
     status: z.enum(["pending", "approved", "rejected"]).optional(),
+}).refine(data => {
+    // Makes sure that the start date/time is before the end date/time
+    const startTime = data.start_time ? new Date(`1970-01-01T${data.start_time}Z`) : null;
+    const endTime = data.end_time ? new Date(`1970-01-01T${data.end_time}Z`) : null;
+
+    if (data.start_date >= data.end_date) { return false; }
+    if (startTime && endTime && startTime >= endTime) { return false; }
+
+    return true;
+}, {
+    message: "Start date/time must be before end date/time",
 });
 
 export function SubmitEvent() {
@@ -254,6 +265,12 @@ export function SubmitEvent() {
                                 <FormMessage />
                                 </FormItem>
                             )}/> */}
+                            {/* Somewhat temporary error message display */}
+                            {Object.values(form.formState.errors).map((error, index) => {
+                                if (error.message !== "Required") { // Don't show required error messages
+                                    return <div className="text-[#ef4343]" key={index}>{error.message}</div>
+                                }
+                            })}
                             <DialogFooter>
                                 <Button type="submit">Submit</Button>
                             </DialogFooter>
@@ -264,83 +281,3 @@ export function SubmitEvent() {
 		</>
 	);
 }
-
-{/* <div className="grid gap-4 py-4">
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="name" className="text-right">
-								Event name
-							</Label>
-							<Input
-								id="name"
-								className="col-span-3"
-								placeholder="Name of the event"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Description
-							</Label>
-							<Input
-								id="description"
-								className="col-span-3"
-								placeholder="Description of the event"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Location
-							</Label>
-							<Input
-								id="location"
-								className="col-span-3"
-								placeholder="Location of the event (optional)"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Start Date
-							</Label>
-							<DatePicker />
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								End Date
-							</Label>
-							<DatePicker />
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Calendar
-							</Label>
-							<Select>
-								<SelectTrigger className="w-[280px]">
-									<SelectValue placeholder="Select a calendar" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="rpi_academic">
-											RPI Academic Calendar
-										</SelectItem>
-										<SelectItem value="rpi_athletics">
-											RPI Athletics
-										</SelectItem>
-										<SelectItem value="club_events">
-											Club Events
-										</SelectItem>
-										<SelectItem value="greek_life">
-											Greek Life
-										</SelectItem>
-										<SelectItem value="stugov">
-											Student Government
-										</SelectItem>
-										<SelectItem value="stulife">
-											Student Life
-										</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						</div>
-					</div> */}

@@ -44,7 +44,7 @@ export function DataTable<TData, TValue>({
 
 	const table = useReactTable({
 		columns,
-		data, // the error here can be ignored, probably
+		data, // TODO: fix this error
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
@@ -115,12 +115,7 @@ export function DataTable<TData, TValue>({
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={
-										row.getIsSelected() && "selected"
-									}
-								>
+								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
 											{flexRender(

@@ -17,7 +17,7 @@ import { useAtom } from "jotai";
 import { sidebarOpenAtom } from "@/app/page";
 import { currentDatesAtom, swipeCalendarAtom } from "@/lib/hooks";
 import { format } from "date-fns";
-import { ModeToggle } from "./theme-toggle";
+import { ThemeToggle } from "./theme-toggle";
 
 function AuthButton() {
     const { data: session } = useSession();
@@ -47,7 +47,6 @@ function AuthButton() {
 
         )
     } else {
-        // return <button onClick={() => signIn()}>Sign in</button>
         return (
             <Button onClick={() => signIn()}>Sign in</Button>        
         )
@@ -95,7 +94,7 @@ export default function Navbar() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <ModeToggle />
+                    {/* <ThemeToggle /> */}
                     <SubmitEvent />
                     {/* <div className="w-64">
                         <Input
