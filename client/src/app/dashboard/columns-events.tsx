@@ -21,7 +21,8 @@ export type Event = {
     start_date: Date;
     end_date: Date;
     location?: string;
-    status: "pending" | "approved" | "rejected";
+    status?: string;
+    all_day?: boolean;
 };
 
 export const ColumnsEvents: ColumnDef<Event>[] = [

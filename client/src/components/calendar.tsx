@@ -19,9 +19,11 @@ interface CalendarEvent {
     description: string;
     start_date: string;
     end_date: string;
-    all_day: boolean;
     location: string;
     status: string;
+    flags: {
+        all_day: boolean;
+    }
     calendar_group?: string;
     color: string;
 }
@@ -167,7 +169,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 			<Popover>
 				<PopoverTrigger>
 					<div className="h-6 box-border pr-2 top-0 w-full select-none" role="note">
-                        {event.all_day && (
+                        {event.flags.all_day && (
                             <div className="h-[22px] px-2 text-white text-xs leading-5 rounded flex items-center hover:brightness-[95%]" style={{ background: styleCalendarEvent(), color: `${today.getDate() > eventDate.getDate() ? '#a3a3a3' : ''}`}} role="button" >
                                 <span className="flex items-center overflow-hidden">
                                     {event.status === 'pending' && <CircleDashed className="h-5 w-5 mr-2" strokeWidth="2px" />}
@@ -178,7 +180,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                                 </span>
                             </div>
                         )}
-                        {!event.all_day && (
+                        {!event.flags.all_day && (
                             <div className="h-[22px] px-2 text-xs leading-5 rounded flex items-center hover:bg-neutral-100" role="button">
                                 <span className="flex items-center overflow-hidden">
                                     {event.status === 'pending' && <CircleDashed className="h-4 w-4 mr-2" strokeWidth="2px" />}
@@ -205,7 +207,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
 							</h4>
                             <span className="text-sm text-muted-foreground">
                                 {format(new Date(event.start_date), 'EEEE, MMMM d')}
-                                {!event.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
+                                {!event.flags.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
                                 {/* {new Date(event.start_date).getMinutes() !== new Date(event.end_date).getMinutes() ? ' - ' + format(new Date(event.end_date), 'EEEE, MMMM d') : ''} */}
                             </span>
                             <div className="flex flex-col gap-2">
@@ -263,8 +265,9 @@ export function Calendar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}`);
+                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}&status=approved`);
                 const json = await response.json();
+                console.log(json)
                 setEvents(json);
             } catch (error) {
                 console.error('Error fetching data:', error);

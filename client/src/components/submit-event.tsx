@@ -36,8 +36,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import {useState} from "react";
-
+import { useState } from "react";
+import { set, parse } from "date-fns";
 
 const formSchema = z.object({
     title: z.string().min(1),
@@ -53,7 +53,7 @@ const formSchema = z.object({
 
 export function SubmitEvent() {
     const [open, setOpen] = useState(false);
-    const currentTime = new Date();
+    const currentTime: Date = new Date();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -65,36 +65,46 @@ export function SubmitEvent() {
     });
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setOpen(false);
-        const start_date = new Date(values.start_date);
-        const start_time = values.start_time ? values.start_time.split(":") : ["00", "00"];
-        const start_hours = parseInt(start_time[0]);
-        const start_minutes = parseInt(start_time[1]);
-        start_date.setHours(start_hours);
-        start_date.setMinutes(start_minutes);
-        start_date.setSeconds(0);
-        start_date.setMilliseconds(0);
+        // const start_date = new Date(values.start_date);
+        // const start_time = values.start_time ? values.start_time.split(":") : ["00", "00"];
+        // const start_hours = parseInt(start_time[0]);
+        // const start_minutes = parseInt(start_time[1]);
+        // start_date.setHours(start_hours);
+        // start_date.setMinutes(start_minutes);
+        // start_date.setSeconds(0);
+        // start_date.setMilliseconds(0);
+        // values.start_date = start_date;
+        // const end_date = new Date(values.end_date);
+        // const end_time = values.end_time ? values.end_time.split(":") : ["00", "00"];
+        // const end_hours = parseInt(end_time[0]);
+        // const end_minutes = parseInt(end_time[1]);
+        // end_date.setHours(end_hours);
+        // end_date.setMinutes(end_minutes);
+        // end_date.setSeconds(0);
+        // end_date.setMilliseconds(0);
+        // values.end_date = end_date;   
+        let start_date = parse(values.start_date.toISOString(), 'yyyy-MM-dd', new Date());
+        let start_time = values.start_time ? values.start_time.split(":").map(Number) : [0, 0];
+        start_date = set(start_date, { hours: start_time[0], minutes: start_time[1], seconds: 0, milliseconds: 0 });
         values.start_date = start_date;
-        const end_date = new Date(values.end_date);
-        const end_time = values.end_time ? values.end_time.split(":") : ["00", "00"];
-        const end_hours = parseInt(end_time[0]);
-        const end_minutes = parseInt(end_time[1]);
-        end_date.setHours(end_hours);
-        end_date.setMinutes(end_minutes);
-        end_date.setSeconds(0);
-        end_date.setMilliseconds(0);
-        values.end_date = end_date;        
+
+        let end_date = parse(values.end_date.toISOString(), 'yyyy-MM-dd', new Date());
+        let end_time = values.end_time ? values.end_time.split(":").map(Number) : [0, 0];
+        end_date = set(end_date, { hours: end_time[0], minutes: end_time[1], seconds: 0, milliseconds: 0 });
+        values.end_date = end_date;     
         values.status = "pending";
 
-        const response = await fetch("http://localhost:3001/api/events", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(values),
-        });
-        if (!response.ok) {
-            console.error(response);
-        }
+        console.log(values);
+        // const response = await fetch("http://localhost:3001/api/events", {
+        //     method: "POST",
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify(values),
+        // });
+        // if (!response.ok) {
+        //     console.error(response);
+        // }
     }
 
 	return (

@@ -18,12 +18,14 @@ type DB struct {
 }
 
 type Event struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	Location    string    `json:"location"`
+	ID          int                    `json:"id"`
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
+	StartDate   time.Time              `json:"start_date"`
+	EndDate     time.Time              `json:"end_date"`
+	Location    string                 `json:"location"`
+	Status      string                 `json:"status"`
+	Flags       map[string]interface{} `json:"flags"`
 }
 
 func setupRouter(db *DB) *gin.Engine {
@@ -72,13 +74,13 @@ func getEvents(c *gin.Context) {
 	var err error
 
 	if status == "" && start_date != "" && end_date != "" {
-		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events WHERE start_date >= $1 and end_date <= $2 ORDER BY id ASC", start_date, end_date)
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events WHERE start_date >= $1 and end_date <= $2 ORDER BY id ASC", start_date, end_date)
 	} else if status != "" && start_date != "" && end_date != "" {
-		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events where start_date >= $1 and end_date <= $2 and status = $3 ORDER BY id ASC", start_date, end_date, status)
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events where start_date >= $1 and end_date <= $2 and status = $3 ORDER BY id ASC", start_date, end_date, status)
 	} else if status != "" {
-		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events where status = $1 ORDER BY id ASC", status)
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events where status = $1 ORDER BY id ASC", status)
 	} else {
-		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location FROM events ORDER BY id ASC")
+		rows, err = db.pool.Query(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events ORDER BY id ASC")
 	}
 
 	if err != nil {
@@ -91,7 +93,7 @@ func getEvents(c *gin.Context) {
 	var events []Event
 	for rows.Next() {
 		var event Event
-		err = rows.Scan(&event.ID, &event.Title, &event.Description, &event.StartDate, &event.EndDate, &event.Location)
+		err = rows.Scan(&event.ID, &event.Title, &event.Description, &event.StartDate, &event.EndDate, &event.Location, &event.Status, &event.Flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Scan failed: %v\n", err)
 			os.Exit(1)
