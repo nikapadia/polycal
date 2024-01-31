@@ -93,7 +93,7 @@ export function SubmitEvent() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(values),
+            body: JSON.stringify(event),
         });
         if (!response.ok) {
             console.error(response);
@@ -136,7 +136,7 @@ export function SubmitEvent() {
                                 <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="My cool event" {...field} />
+                                    <Input placeholder="Describe your event" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -148,7 +148,7 @@ export function SubmitEvent() {
                                 <FormItem>
                                 <FormLabel>Location</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="My cool event" {...field} />
+                                    <Input placeholder="Where is your event?" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>

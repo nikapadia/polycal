@@ -280,7 +280,18 @@ export function Calendar() {
                 });
 
                 for (let date in eventsByDate) {
-                    eventsByDate[date].sort((a, b) => (b.flags?.all_day ? 1 : 0) - (a.flags?.all_day ? 1 : 0));
+                    eventsByDate[date].sort((a, b) => {
+                        // First sort by all_day flag
+                        const allDayComparison = (b.flags?.all_day ? 1 : 0) - (a.flags?.all_day ? 1 : 0);
+                        if (allDayComparison !== 0) {
+                            return allDayComparison;
+                        }
+                
+                        // If both events have the same all_day flag, sort by start_date
+                        const aStartDate = new Date(a.start_date);
+                        const bStartDate = new Date(b.start_date);
+                        return aStartDate.getTime() - bStartDate.getTime();
+                    });
                 }
 
                 setEvents(json);

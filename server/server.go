@@ -76,10 +76,10 @@ func getEvents(c *gin.Context) {
 	args := []interface{}{}
 
 	if start_date != "" && end_date != "" && status != "" {
-		query += " WHERE start_date >= $1 AND end_date <= $2 AND status = $3 ORDER BY id ASC"
+		query += " WHERE start_date BETWEEN $1 AND $2 AND status = $3 ORDER BY id ASC"
 		args = append(args, start_date, end_date, status)
 	} else if start_date != "" && end_date != "" {
-		query += " WHERE start_date >= $1 AND end_date <= $2 ORDER BY id ASC"
+		query += " WHERE start_date BETWEEN $1 AND $2 ORDER BY id ASC"
 		args = append(args, start_date, end_date)
 	} else if status != "" {
 		query += " WHERE status = $1 ORDER BY id ASC"
