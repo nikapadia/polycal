@@ -88,7 +88,7 @@ func getEvents(c *gin.Context) {
 		query += " ORDER BY id ASC"
 	}
 
-	query += " LIMIT 100" // Temporary limit
+	// query += " LIMIT 100" // Temporary limit
 
 	rows, err := db.pool.Query(context.Background(), query, args...)
 
@@ -133,14 +133,27 @@ func addEvent(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "INSERT INTO events (title, description, start_date, end_date, location, status, flags, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags, event.UserID)
+	// Check if user_id exists in users table
+	var userIDExists bool
+	err := db.pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE id=$1)", event.UserID).Scan(&userIDExists)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Query failed"})
+		return
+	}
+	if !userIDExists {
+		c.JSON(400, gin.H{"error": "User not found"})
+		return
+	}
+
+	_, err = db.pool.Exec(context.Background(), "INSERT INTO events (user_id, title, description, start_date, end_date, location, status, flags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", event.UserID, event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Insert failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Insert failed"})
 		return
 	}
 
-	c.JSON(200, event)
+	c.JSON(200, gin.H{"status": "Event added successfully"})
 }
 
 func NewDB() (*DB, error) {

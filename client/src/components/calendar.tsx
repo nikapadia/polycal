@@ -1,13 +1,13 @@
 "use client"
 
-import {eachDayOfInterval, endOfWeek, format, getMinutes, startOfWeek } from 'date-fns';
-import { AlignLeft, MapPin, CalendarIcon, XCircle } from "lucide-react"
+import { useEffect, useState } from 'react';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";  
-import { useEffect, useState } from 'react';
+import { AlignLeft, MapPin, CalendarIcon, XCircle } from "lucide-react"
+import { eachDayOfInterval, endOfWeek, format, startOfWeek } from 'date-fns';
 import { useAtom } from 'jotai';
 import { currentDatesAtom, swipeCalendarAtom } from '@/lib/hooks';
 
@@ -187,7 +187,7 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                                         <div className="rounded-lg border-4" style={{borderColor: "#000000"}}></div>
                                     </div>
                                     <span className="text-xs font-normal mr-1">
-                                        {format(new Date(event.start_date), getMinutes(new Date(event.start_date)) === 0 ? 'haaa' : 'h:mmaaa')}
+                                        {format(new Date(event.start_date), new Date(event.start_date).getMinutes() === 0 ? 'haaa' : 'h:mmaaa')}
                                     </span>
                                     <span className="text-xs whitespace-nowrap overflow-hidden font-medium">
                                         {event.title}
@@ -206,19 +206,20 @@ function CalendarEvent({ event }: { event: CalendarEvent }) {
                             <span className="text-sm text-muted-foreground">
                                 {format(new Date(event.start_date), 'EEEE, MMMM d')}
                                 {!event.flags?.all_day ? ` ⋅ ${format(new Date(event.start_date), "h:mmaaa")} – ${format(new Date(event.end_date), "h:mmaaa")} ` : ''} 
-                                {/* {new Date(event.start_date).getMinutes() !== new Date(event.end_date).getMinutes() ? ' - ' + format(new Date(event.end_date), 'EEEE, MMMM d') : ''} */}
                             </span>
                             <div className="flex flex-col gap-2">
-                                <div className="flex gap-3">
-                                    <div className="max-h-14">
-                                        <AlignLeft size={20} className="text-neutral-950"/>
+                                {event.description && (
+                                    <div className="flex gap-3">
+                                        <div className="max-h-14">
+                                            <AlignLeft size={20} className="text-neutral-950"/>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">
+                                                {event.description}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">
-                                            {event.description}
-                                        </p>
-                                    </div>
-                                </div>
+                                )}
                                 {event.location && (
                                 <a href={`https://www.google.com/maps/search/?api=1&query=${event.location}`} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground select-text">
                                     <div className="flex items-center gap-3 hover:bg-slate-100">
@@ -254,7 +255,8 @@ function chunk(dates: Date[], arg1: number): Date[][] {
 export function Calendar() {
     const [currentDates, setCurrentDates] = useAtom(currentDatesAtom);
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    const [swipeCalendar, setSwipeCalendar] = useAtom(swipeCalendarAtom);
+    const [eventsByDate, setEventsByDate] = useState<{[key: string]: CalendarEvent[]}>({});
+    // const [swipeCalendar, setSwipeCalendar] = useAtom(swipeCalendarAtom);
     const start = startOfWeek(currentDates[0])
     const end = endOfWeek(currentDates[1]);
 
@@ -264,10 +266,25 @@ export function Calendar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/events?start_date=${format(startOfWeek(currentDates[0]), "yyyy-MM-dd")}&end_date=${format(endOfWeek(currentDates[1]), "yyyy-MM-dd")}`);
+                // Plus 1 to the start and end date to fix the timezone issue
+                const response = await fetch(`http://localhost:8080/events?start_date=${format(+start - 1, "yyyy-MM-dd")}&end_date=${format(+end + 1, "yyyy-MM-dd")}`);
                 const json = await response.json();
-                // console.log(json)
+                let eventsByDate: {[key: string]: CalendarEvent[]} = {};
+                json.forEach((event: CalendarEvent) => {
+                    const date = format(new Date(event.start_date), "yyyy-MM-dd");
+                    if (eventsByDate[date]) {
+                        eventsByDate[date].push(event);
+                    } else {
+                        eventsByDate[date] = [event];
+                    }
+                });
+
+                for (let date in eventsByDate) {
+                    eventsByDate[date].sort((a, b) => (b.flags?.all_day ? 1 : 0) - (a.flags?.all_day ? 1 : 0));
+                }
+
                 setEvents(json);
+                setEventsByDate(eventsByDate);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -277,21 +294,9 @@ export function Calendar() {
     }, [currentDates]);
 
 
-    const eventsByDate: {[key: string]: CalendarEvent[]} = {};
-    if (events && events.length > 0) {
-        events.forEach((event: CalendarEvent) => {
-            const date = format(new Date(event.start_date), "yyyy-MM-dd");
-            if (eventsByDate[date]) {
-                eventsByDate[date].push(event);
-            } else {
-                eventsByDate[date] = [event];
-            }
-        });
-    }
-
     return (
         <>
-            {/* <div className={`flex flex-col h-full transition-transform duration-500 ${swipeCalendar === 1 ? '-translate-x-full' : swipeCalendar === -1 ? 'translate-x-full' : ''}`}> TODO: Make this actually work.*/}
+            {/* <div className={`flex flex-col h-full transition-transform duration-500 ${swipeCalendar === 1 ? '-translate-x-full' : swipeCalendar === -1 ? 'translate-x-full' : ''}`}> TODO: Make the swipe animation actually work.*/}
             <div className="flex flex-col h-full">
                 <CalendarHeader />
                 <div className="flex grow flex-shrink basis-0 flex-col" >

@@ -49,17 +49,6 @@ const formSchema = z.object({
     start_time: z.string().optional(),
     end_time: z.string().optional(),
     status: z.enum(["pending", "approved", "rejected"]).optional(),
-}).refine(data => {
-    // Makes sure that the start date/time is before the end date/time
-    const startTime = data.start_time ? new Date(`1970-01-01T${data.start_time}Z`) : null;
-    const endTime = data.end_time ? new Date(`1970-01-01T${data.end_time}Z`) : null;
-
-    if (data.start_date >= data.end_date) { return false; }
-    if (startTime && endTime && startTime >= endTime) { return false; }
-
-    return true;
-}, {
-    message: "Start date/time must be before end date/time",
 });
 
 export function SubmitEvent() {
@@ -78,7 +67,7 @@ export function SubmitEvent() {
         setOpen(false);
         let event = {
             title: values.title,
-            user_id: 1, // TODO: replace with actual user id, hardcoded for now
+            user_id: 1,
             description: values.description,
             location: values.location,
             start_date: "",
