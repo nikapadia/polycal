@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -39,30 +40,10 @@ type User struct {
 	Flags     map[string]interface{} `json:"flags"`
 }
 
-func setupRouter(db *DB) *gin.Engine {
-	r := gin.Default()
-	r.ForwardedByClientIP = true
-	r.SetTrustedProxies([]string{"127.0.0.1"})
-
-	r.Use(func(c *gin.Context) {
-		c.Set("db", db)
-		c.Next()
-	})
-
-	r.GET("/users", getUsers)
-	r.GET("/users/:id", getUser)
-	r.GET("/events", getEvents)
-	r.GET("/events/:id", getEvent)
-
-	r.POST("/events", postEvent)
-
-	r.PATCH("/events/:id", patchEvent)
-	return r
-}
-
 /* GET REQUEST HANDLERS */
+
+// get all users
 func getUsers(c *gin.Context) {
-	// get users from database
 	db, exists := c.MustGet("db").(*DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
@@ -96,6 +77,7 @@ func getUsers(c *gin.Context) {
 	c.JSON(200, users)
 }
 
+// get user by id
 func getUser(c *gin.Context) {
 	db, exists := c.MustGet("db").(*DB)
 	if !exists {
@@ -115,6 +97,7 @@ func getUser(c *gin.Context) {
 	c.JSON(200, user)
 }
 
+// get all events
 func getEvents(c *gin.Context) {
 	db, exists := c.MustGet("db").(*DB)
 	if !exists {
@@ -174,6 +157,7 @@ func getEvents(c *gin.Context) {
 	c.JSON(200, events)
 }
 
+// get event by id
 func getEvent(c *gin.Context) {
 	db, exists := c.MustGet("db").(*DB)
 	if !exists {
@@ -194,6 +178,7 @@ func getEvent(c *gin.Context) {
 
 /* POST REQUEST HANDLERS */
 
+// create new event
 func postEvent(c *gin.Context) {
 	db, exists := c.MustGet("db").(*DB)
 	if !exists {
@@ -215,6 +200,29 @@ func postEvent(c *gin.Context) {
 	}
 
 	c.JSON(200, event)
+}
+
+func postUser(c *gin.Context) {
+	db, exists := c.MustGet("db").(*DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
+	}
+
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := db.pool.Exec(context.Background(), "INSERT INTO users (first_name, last_name, email, role, flags) VALUES ($1, $2, $3, $4, $5)", user.FirstName, user.LastName, user.Email, user.Role, user.Flags)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to insert user: %v\n", err)
+		c.JSON(500, gin.H{"error": "Unable to insert user"})
+		return
+	}
+
+	c.JSON(200, user)
 }
 
 /* PUT REQUEST HANDLERS */
@@ -272,53 +280,131 @@ func patchEvent(c *gin.Context) {
 		return
 	}
 
-	var event Event
+	var event map[string]interface{}
 	if err := c.ShouldBindJSON(&event); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Create a slice to hold the query parameters
-	params := []interface{}{}
-
-	// Create a slice to hold the SET clauses
-	setClauses := []string{}
-
-	// Use reflection to iterate over the fields of the event struct
-	v := reflect.ValueOf(event)
-	typeOfEvent := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		// Skip the ID field
-		if typeOfEvent.Field(i).Name == "ID" {
-			continue
-		}
-
-		// Add the field to the query and params if it's not the zero value for its type
-		if v.Field(i).Interface() != reflect.Zero(v.Field(i).Type()).Interface() {
-			setClauses = append(setClauses, fmt.Sprintf("%s = $%d", strings.ToLower(typeOfEvent.Field(i).Name), len(params)+1))
-			params = append(params, v.Field(i).Interface())
-		}
-	}
-	fmt.Println("hello world")
-
-	// Add the event ID to the params
-	params = append(params, event.ID)
-
-	// Build the query
-	query := fmt.Sprintf("UPDATE events SET %s WHERE id = $%d", strings.Join(setClauses, ", "), len(params))
-
-	// Execute the query
-	_, err := db.pool.Exec(context.Background(), query, params...)
-
-	// _, err := db.pool.Exec(context.Background(), "UPDATE events SET title = $1, description = $2, start_date = $3, end_date = $4, location = $5, status = $6, flags = $7 WHERE id = $8", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags, event.ID)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to update event: %v\n", err)
-		c.JSON(500, gin.H{"error": "Unable to update event"})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is required"})
 		return
 	}
 
-	c.JSON(200, event)
+	query := "UPDATE events SET "
+	args := []interface{}{}
+	i := 1
+
+	for key, value := range event {
+		query += fmt.Sprintf("%s=$%d, ", key, i)
+		args = append(args, value)
+		i++
+	}
+
+	query = strings.TrimSuffix(query, ", ")
+	query += " WHERE id=$" + strconv.Itoa(i)
+	args = append(args, id)
+
+	_, err := db.pool.Exec(context.Background(), query, args...)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Update failed"})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "Event updated successfully"})
+
+}
+
+func patchUser(c *gin.Context) {
+	db, exists := c.MustGet("db").(*DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
+	}
+
+	var user map[string]interface{}
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is required"})
+		return
+	}
+
+	query := "UPDATE users SET "
+	args := []interface{}{}
+	i := 1
+
+	for key, value := range user {
+		query += fmt.Sprintf("%s=$%d, ", key, i)
+		args = append(args, value)
+		i++
+	}
+
+	query = strings.TrimSuffix(query, ", ")
+	query += " WHERE id=$" + strconv.Itoa(i)
+	args = append(args, id)
+
+	_, err := db.pool.Exec(context.Background(), query, args...)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Update failed"})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "User updated successfully"})
+}
+
+/* DELETE REQUEST HANDLERS */
+func deleteEvent(c *gin.Context) {
+	db, exists := c.MustGet("db").(*DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is required"})
+		return
+	}
+
+	_, err := db.pool.Exec(context.Background(), "DELETE FROM events WHERE id = $1", id)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Delete failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Delete failed"})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "Event deleted successfully"})
+}
+
+func deleteUser(c *gin.Context) {
+	db, exists := c.MustGet("db").(*DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is required"})
+		return
+	}
+
+	_, err := db.pool.Exec(context.Background(), "DELETE FROM users WHERE id = $1", id)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Delete failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "Delete failed"})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "User deleted successfully"})
 }
 
 func NewDB() (*DB, error) {
@@ -335,6 +421,35 @@ func (db *DB) Close() {
 	db.pool.Close()
 }
 
+func setupRouter(db *DB) *gin.Engine {
+	r := gin.Default()
+	r.ForwardedByClientIP = true
+	r.SetTrustedProxies([]string{"127.0.0.1"})
+
+	r.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
+
+	r.GET("/users", getUsers)
+	r.GET("/users/:id", getUser)
+	r.GET("/events", getEvents)
+	r.GET("/events/:id", getEvent)
+
+	r.POST("/events", postEvent)
+	r.POST("/users", postUser)
+
+	// r.PUT("/events/:id", putEvent)
+	// r.PUT("/users/:id", putUser)
+
+	r.PATCH("/events/:id", patchEvent)
+	r.PATCH("/users/:id", patchUser)
+
+	r.DELETE("/events/:id", deleteEvent)
+	r.DELETE("/users/:id", deleteUser)
+	return r
+}
+
 func main() {
 	db, err := NewDB()
 	if err != nil {
@@ -345,6 +460,5 @@ func main() {
 
 	r := setupRouter(db)
 
-	// Listen and Server in 0.0.0.0:8080
 	r.Run(":8080")
 }
