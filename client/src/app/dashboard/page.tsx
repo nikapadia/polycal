@@ -33,7 +33,7 @@ export default function Dashboard() {
         getEventData().then((data) => setEventData(data));
     }, []);
 
-    useEffect(() => {
+    /* useEffect(() => {
         async function getUserData(): Promise<User[]> {
             const response = await fetch("http://localhost:8080/users");
         
@@ -49,7 +49,7 @@ export default function Dashboard() {
         }
 
         getUserData().then((data) => setUserData(data));
-    }, []);
+    }, []); */
 
     return (
         <div className="hidden space-y-6 p-8 md:block">
@@ -60,7 +60,7 @@ export default function Dashboard() {
                 </p>
             </div>
             <DataTable columns={ColumnsEvents} data={eventData} />
-            <DataTable columns={ColumnsUsers} data={userData} />
+            {/* <DataTable columns={ColumnsUsers} data={userData} /> */}
         </div>
     );
 }

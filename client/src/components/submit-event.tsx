@@ -65,46 +65,39 @@ export function SubmitEvent() {
     });
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setOpen(false);
-        // const start_date = new Date(values.start_date);
-        // const start_time = values.start_time ? values.start_time.split(":") : ["00", "00"];
-        // const start_hours = parseInt(start_time[0]);
-        // const start_minutes = parseInt(start_time[1]);
-        // start_date.setHours(start_hours);
-        // start_date.setMinutes(start_minutes);
-        // start_date.setSeconds(0);
-        // start_date.setMilliseconds(0);
-        // values.start_date = start_date;
-        // const end_date = new Date(values.end_date);
-        // const end_time = values.end_time ? values.end_time.split(":") : ["00", "00"];
-        // const end_hours = parseInt(end_time[0]);
-        // const end_minutes = parseInt(end_time[1]);
-        // end_date.setHours(end_hours);
-        // end_date.setMinutes(end_minutes);
-        // end_date.setSeconds(0);
-        // end_date.setMilliseconds(0);
-        // values.end_date = end_date;   
-        let start_date = parse(values.start_date.toISOString(), 'yyyy-MM-dd', new Date());
+        let event = {
+            title: values.title,
+            user_id: 1,
+            description: values.description,
+            location: values.location,
+            start_date: "",
+            end_date: "",
+            status: "pending",
+            flags: {
+                all_day: values.all_day,
+            }
+        };
+        let start_date;   
         let start_time = values.start_time ? values.start_time.split(":").map(Number) : [0, 0];
-        start_date = set(start_date, { hours: start_time[0], minutes: start_time[1], seconds: 0, milliseconds: 0 });
-        values.start_date = start_date;
+        start_date = set(values.start_date, { hours: start_time[0], minutes: start_time[1], seconds: 0, milliseconds: 0 });
+        event.start_date = start_date.toISOString();
 
-        let end_date = parse(values.end_date.toISOString(), 'yyyy-MM-dd', new Date());
+        let end_date;
         let end_time = values.end_time ? values.end_time.split(":").map(Number) : [0, 0];
-        end_date = set(end_date, { hours: end_time[0], minutes: end_time[1], seconds: 0, milliseconds: 0 });
-        values.end_date = end_date;     
-        values.status = "pending";
+        end_date = set(values.end_date, { hours: end_time[0], minutes: end_time[1], seconds: 0, milliseconds: 0 });
+        event.end_date = end_date.toISOString();
 
-        console.log(values);
-        // const response = await fetch("http://localhost:3001/api/events", {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(values),
-        // });
-        // if (!response.ok) {
-        //     console.error(response);
-        // }
+        // console.log(event);
+        const response = await fetch("http://localhost:8080/events", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(event),
+        });
+        if (!response.ok) {
+            console.error(response);
+        }
     }
 
 	return (
@@ -143,7 +136,7 @@ export function SubmitEvent() {
                                 <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="My cool event" {...field} />
+                                    <Input placeholder="Describe your event" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -155,7 +148,7 @@ export function SubmitEvent() {
                                 <FormItem>
                                 <FormLabel>Location</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="My cool event" {...field} />
+                                    <Input placeholder="Where is your event?" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -217,7 +210,7 @@ export function SubmitEvent() {
                                 <FormItem>
                                 <FormLabel>All Day</FormLabel>
                                 <FormControl>
-                                    <input type="checkbox" {...field} value={field.value ? "true" : "false"} defaultChecked/>
+                                    <input className="ml-2" type="checkbox" {...field} value={field.value ? "true" : "false"}/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -261,6 +254,12 @@ export function SubmitEvent() {
                                 <FormMessage />
                                 </FormItem>
                             )}/> */}
+                            {/* Somewhat temporary error message display */}
+                            {Object.values(form.formState.errors).map((error, index) => {
+                                if (error.message !== "Required") { // Don't show required error messages
+                                    return <div className="text-[#ef4343]" key={index}>{error.message}</div>
+                                }
+                            })}
                             <DialogFooter>
                                 <Button type="submit">Submit</Button>
                             </DialogFooter>
@@ -271,83 +270,3 @@ export function SubmitEvent() {
 		</>
 	);
 }
-
-{/* <div className="grid gap-4 py-4">
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="name" className="text-right">
-								Event name
-							</Label>
-							<Input
-								id="name"
-								className="col-span-3"
-								placeholder="Name of the event"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Description
-							</Label>
-							<Input
-								id="description"
-								className="col-span-3"
-								placeholder="Description of the event"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Location
-							</Label>
-							<Input
-								id="location"
-								className="col-span-3"
-								placeholder="Location of the event (optional)"
-								required
-							/>
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Start Date
-							</Label>
-							<DatePicker />
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								End Date
-							</Label>
-							<DatePicker />
-						</div>
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="text" className="text-right">
-								Calendar
-							</Label>
-							<Select>
-								<SelectTrigger className="w-[280px]">
-									<SelectValue placeholder="Select a calendar" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="rpi_academic">
-											RPI Academic Calendar
-										</SelectItem>
-										<SelectItem value="rpi_athletics">
-											RPI Athletics
-										</SelectItem>
-										<SelectItem value="club_events">
-											Club Events
-										</SelectItem>
-										<SelectItem value="greek_life">
-											Greek Life
-										</SelectItem>
-										<SelectItem value="stugov">
-											Student Government
-										</SelectItem>
-										<SelectItem value="stulife">
-											Student Life
-										</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						</div>
-					</div> */}
