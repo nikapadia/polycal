@@ -6,52 +6,27 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
+
+	"server/database"
+	"server/model"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 )
 
-type DB struct {
-	pool *pgxpool.Pool
-}
-
-type Event struct {
-	ID          int                    `json:"id"`
-	UserID      int                    `json:"user_id"`
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	StartDate   time.Time              `json:"start_date"`
-	EndDate     time.Time              `json:"end_date"`
-	Location    string                 `json:"location"`
-	Status      string                 `json:"status"`
-	Flags       map[string]interface{} `json:"flags"`
-}
-
-type User struct {
-	ID        int                    `json:"id"`
-	FirstName string                 `json:"first_name"`
-	LastName  string                 `json:"last_name"`
-	Email     string                 `json:"email"`
-	Role      string                 `json:"role"`
-	CreatedAt time.Time              `json:"created_at"`
-	Flags     map[string]interface{} `json:"flags"`
-}
+type Event = model.Event
+type User = model.User
 
 /* GET REQUEST HANDLERS */
 
 // get all users
 func getUsers(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
 	}
-	var rows pgx.Rows
-	var err error
-	rows, err = db.pool.Query(context.Background(), "SELECT id, first_name, last_name, email, role, created_at, flags FROM users ORDER BY id ASC")
+
+	rows, err := db.Pool().Query(context.Background(), "SELECT * FROM users ORDER BY id ASC")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Query failed"})
@@ -79,7 +54,7 @@ func getUsers(c *gin.Context) {
 
 // get user by id
 func getUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -87,7 +62,7 @@ func getUser(c *gin.Context) {
 
 	id := c.Param("id")
 	var user User
-	err := db.pool.QueryRow(context.Background(), "SELECT id, first_name, last_name, email, role, created_at, flags FROM users WHERE id = $1", id).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
+	err := db.Pool().QueryRow(context.Background(), "SELECT id, first_name, last_name, email, role, created_at, flags FROM users WHERE id = $1", id).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
 		c.JSON(404, gin.H{"error": "User not found"})
@@ -99,7 +74,7 @@ func getUser(c *gin.Context) {
 
 // get all events
 func getEvents(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -127,7 +102,7 @@ func getEvents(c *gin.Context) {
 
 	// query += " LIMIT 100" // Temporary limit
 
-	rows, err := db.pool.Query(context.Background(), query, args...)
+	rows, err := db.Pool().Query(context.Background(), query, args...)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
@@ -159,7 +134,7 @@ func getEvents(c *gin.Context) {
 
 // get event by id
 func getEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -167,7 +142,7 @@ func getEvent(c *gin.Context) {
 
 	id := c.Param("id")
 	var event Event
-	err := db.pool.QueryRow(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events WHERE id = $1", id).Scan(&event.ID, &event.Title, &event.Description, &event.StartDate, &event.EndDate, &event.Location, &event.Status, &event.Flags)
+	err := db.Pool().QueryRow(context.Background(), "SELECT id, title, description, start_date, end_date, location, status, flags FROM events WHERE id = $1", id).Scan(&event.ID, &event.Title, &event.Description, &event.StartDate, &event.EndDate, &event.Location, &event.Status, &event.Flags)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Query failed"})
@@ -180,7 +155,7 @@ func getEvent(c *gin.Context) {
 
 // create new event
 func postEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -192,7 +167,7 @@ func postEvent(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "INSERT INTO events (title, description, start_date, end_date, location, status, flags) VALUES ($1, $2, $3, $4, $5, $6, $7)", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags)
+	_, err := db.Pool().Exec(context.Background(), "INSERT INTO events (title, description, start_date, end_date, location, status, flags) VALUES ($1, $2, $3, $4, $5, $6, $7)", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to insert event: %v\n", err)
 		c.JSON(500, gin.H{"error": "Unable to insert event"})
@@ -203,7 +178,7 @@ func postEvent(c *gin.Context) {
 }
 
 func postUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -215,7 +190,7 @@ func postUser(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "INSERT INTO users (first_name, last_name, email, role, flags) VALUES ($1, $2, $3, $4, $5)", user.FirstName, user.LastName, user.Email, user.Role, user.Flags)
+	_, err := db.Pool().Exec(context.Background(), "INSERT INTO users (first_name, last_name, email, role, flags) VALUES ($1, $2, $3, $4, $5)", user.FirstName, user.LastName, user.Email, user.Role, user.Flags)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to insert user: %v\n", err)
 		c.JSON(500, gin.H{"error": "Unable to insert user"})
@@ -227,7 +202,7 @@ func postUser(c *gin.Context) {
 
 /* PUT REQUEST HANDLERS */
 func putEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -239,7 +214,7 @@ func putEvent(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "UPDATE events SET title = $1, description = $2, start_date = $3, end_date = $4, location = $5, status = $6, flags = $7 WHERE id = $8", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags, event.ID)
+	_, err := db.Pool().Exec(context.Background(), "UPDATE events SET title = $1, description = $2, start_date = $3, end_date = $4, location = $5, status = $6, flags = $7 WHERE id = $8", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags, event.ID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to update event: %v\n", err)
 		c.JSON(500, gin.H{"error": "Unable to update event"})
@@ -250,7 +225,7 @@ func putEvent(c *gin.Context) {
 }
 
 func putUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -262,7 +237,7 @@ func putUser(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "UPDATE users SET first_name = $1, last_name = $2, email = $3, role = $4, flags = $5 WHERE id = $6", user.FirstName, user.LastName, user.Email, user.Role, user.Flags, user.ID)
+	_, err := db.Pool().Exec(context.Background(), "UPDATE users SET first_name = $1, last_name = $2, email = $3, role = $4, flags = $5 WHERE id = $6", user.FirstName, user.LastName, user.Email, user.Role, user.Flags, user.ID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to update user: %v\n", err)
 		c.JSON(500, gin.H{"error": "Unable to update user"})
@@ -274,7 +249,7 @@ func putUser(c *gin.Context) {
 
 /* PATCH REQUEST HANDLERS */
 func patchEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -306,7 +281,7 @@ func patchEvent(c *gin.Context) {
 	query += " WHERE id=$" + strconv.Itoa(i)
 	args = append(args, id)
 
-	_, err := db.pool.Exec(context.Background(), query, args...)
+	_, err := db.Pool().Exec(context.Background(), query, args...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Update failed"})
@@ -318,7 +293,7 @@ func patchEvent(c *gin.Context) {
 }
 
 func patchUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -350,7 +325,7 @@ func patchUser(c *gin.Context) {
 	query += " WHERE id=$" + strconv.Itoa(i)
 	args = append(args, id)
 
-	_, err := db.pool.Exec(context.Background(), query, args...)
+	_, err := db.Pool().Exec(context.Background(), query, args...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Update failed"})
@@ -362,7 +337,7 @@ func patchUser(c *gin.Context) {
 
 /* DELETE REQUEST HANDLERS */
 func deleteEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -374,7 +349,7 @@ func deleteEvent(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "DELETE FROM events WHERE id = $1", id)
+	_, err := db.Pool().Exec(context.Background(), "DELETE FROM events WHERE id = $1", id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Delete failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Delete failed"})
@@ -385,7 +360,7 @@ func deleteEvent(c *gin.Context) {
 }
 
 func deleteUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*DB)
+	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -397,7 +372,7 @@ func deleteUser(c *gin.Context) {
 		return
 	}
 
-	_, err := db.pool.Exec(context.Background(), "DELETE FROM users WHERE id = $1", id)
+	_, err := db.Pool().Exec(context.Background(), "DELETE FROM users WHERE id = $1", id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Delete failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Delete failed"})
@@ -407,7 +382,7 @@ func deleteUser(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "User deleted successfully"})
 }
 
-func NewDB() (*DB, error) {
+/* func NewDB() (*DB, error) {
 	err := godotenv.Load(".env")
 	pool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
 	if err != nil {
@@ -419,9 +394,9 @@ func NewDB() (*DB, error) {
 
 func (db *DB) Close() {
 	db.pool.Close()
-}
+} */
 
-func setupRouter(db *DB) *gin.Engine {
+func setupRouter(db *database.DB) *gin.Engine {
 	r := gin.Default()
 	r.ForwardedByClientIP = true
 	r.SetTrustedProxies([]string{"127.0.0.1"})
@@ -451,7 +426,7 @@ func setupRouter(db *DB) *gin.Engine {
 }
 
 func main() {
-	db, err := NewDB()
+	db, err := database.NewDB()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
