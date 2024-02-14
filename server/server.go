@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
+	"server/api/resource/user"
 	"server/database"
 	"server/model"
 
@@ -14,13 +16,25 @@ import (
 )
 
 type Event = model.Event
-type User = model.User
+type User = user.User
 
 /* GET REQUEST HANDLERS */
 
 // get all users
 func getUsers(c *gin.Context) {
 	db, exists := c.MustGet("db").(*database.DB)
+	if !exists {
+		c.JSON(500, gin.H{"error": "db not found"})
+		return
+	}
+
+	handler := user.Handler{DB: db}
+	users, err := handler.GetUsers()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Unable to get users"})
+		return
+	}
+	/* db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
@@ -48,24 +62,27 @@ func getUsers(c *gin.Context) {
 		fmt.Fprintf(os.Stderr, "Error occurred during iteration: %v\n", err)
 		os.Exit(1)
 	}
-
+	*/
 	c.JSON(200, users)
 }
 
 // get user by id
-func getUser(c *gin.Context) {
+func getUserByID(c *gin.Context) {
 	db, exists := c.MustGet("db").(*database.DB)
 	if !exists {
 		c.JSON(500, gin.H{"error": "db not found"})
 		return
 	}
 
-	id := c.Param("id")
-	var user User
-	err := db.Pool().QueryRow(context.Background(), "SELECT id, first_name, last_name, email, role, created_at, flags FROM users WHERE id = $1", id).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
+	handler := user.Handler{DB: db}
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
-		c.JSON(404, gin.H{"error": "User not found"})
+		c.JSON(400, gin.H{"error": "Invalid user id"})
+		return
+	}
+	user, err := handler.GetUserByID(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Unable to get user"})
 		return
 	}
 
@@ -184,67 +201,26 @@ func postUser(c *gin.Context) {
 		return
 	}
 
-	var user User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	_, err := db.Pool().Exec(context.Background(), "INSERT INTO users (first_name, last_name, email, role, flags) VALUES ($1, $2, $3, $4, $5)", user.FirstName, user.LastName, user.Email, user.Role, user.Flags)
+	// take the user from the request body
+	var body User
+	err := json.NewDecoder(c.Request.Body).Decode(&body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to insert user: %v\n", err)
-		c.JSON(500, gin.H{"error": "Unable to insert user"})
+		if err.Error() == "invalid character '-' in numeric literal" {
+			c.JSON(400, gin.H{"error": "Invalid JSON: incorrectly formatted number"})
+		} else {
+			c.JSON(400, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
-	c.JSON(200, user)
-}
-
-/* PUT REQUEST HANDLERS */
-func putEvent(c *gin.Context) {
-	db, exists := c.MustGet("db").(*database.DB)
-	if !exists {
-		c.JSON(500, gin.H{"error": "db not found"})
-		return
-	}
-
-	var event Event
-	if err := c.ShouldBindJSON(&event); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	_, err := db.Pool().Exec(context.Background(), "UPDATE events SET title = $1, description = $2, start_date = $3, end_date = $4, location = $5, status = $6, flags = $7 WHERE id = $8", event.Title, event.Description, event.StartDate, event.EndDate, event.Location, event.Status, event.Flags, event.ID)
+	handler := user.Handler{DB: db}
+	newUser, err := handler.CreateUser(body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to update event: %v\n", err)
-		c.JSON(500, gin.H{"error": "Unable to update event"})
+		c.JSON(500, gin.H{"error": "Unable to create user", "details": err.Error()})
 		return
 	}
 
-	c.JSON(200, event)
-}
-
-func putUser(c *gin.Context) {
-	db, exists := c.MustGet("db").(*database.DB)
-	if !exists {
-		c.JSON(500, gin.H{"error": "db not found"})
-		return
-	}
-
-	var user User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	_, err := db.Pool().Exec(context.Background(), "UPDATE users SET first_name = $1, last_name = $2, email = $3, role = $4, flags = $5 WHERE id = $6", user.FirstName, user.LastName, user.Email, user.Role, user.Flags, user.ID)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to update user: %v\n", err)
-		c.JSON(500, gin.H{"error": "Unable to update user"})
-		return
-	}
-
-	c.JSON(200, user)
+	c.JSON(200, newUser)
 }
 
 /* PATCH REQUEST HANDLERS */
@@ -299,9 +275,15 @@ func patchUser(c *gin.Context) {
 		return
 	}
 
-	var user map[string]interface{}
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	handler := user.Handler{DB: db}
+	var body map[string]interface{}
+	err := json.NewDecoder(c.Request.Body).Decode(&body)
+	if err != nil {
+		if err.Error() == "invalid character '-' in numeric literal" {
+			c.JSON(400, gin.H{"error": "Invalid JSON: incorrectly formatted number"})
+		} else {
+			c.JSON(400, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
@@ -310,8 +292,21 @@ func patchUser(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "id is required"})
 		return
 	}
+	parsedID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid id"})
+		return
+	}
 
-	query := "UPDATE users SET "
+	updatedUser, err := handler.UpdateUser(parsedID, body)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Update failed"})
+		return
+	}
+
+	c.JSON(200, updatedUser)
+
+	/* query := "UPDATE users SET "
 	args := []interface{}{}
 	i := 1
 
@@ -330,7 +325,7 @@ func patchUser(c *gin.Context) {
 		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "Update failed"})
 		return
-	}
+	} */
 
 	c.JSON(200, gin.H{"status": "User updated successfully"})
 }
@@ -382,20 +377,6 @@ func deleteUser(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "User deleted successfully"})
 }
 
-/* func NewDB() (*DB, error) {
-	err := godotenv.Load(".env")
-	pool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
-		return nil, err
-	}
-	return &DB{pool: pool}, nil
-}
-
-func (db *DB) Close() {
-	db.pool.Close()
-} */
-
 func setupRouter(db *database.DB) *gin.Engine {
 	r := gin.Default()
 	r.ForwardedByClientIP = true
@@ -407,15 +388,12 @@ func setupRouter(db *database.DB) *gin.Engine {
 	})
 
 	r.GET("/users", getUsers)
-	r.GET("/users/:id", getUser)
+	r.GET("/users/:id", getUserByID)
 	r.GET("/events", getEvents)
 	r.GET("/events/:id", getEvent)
 
 	r.POST("/events", postEvent)
 	r.POST("/users", postUser)
-
-	// r.PUT("/events/:id", putEvent)
-	// r.PUT("/users/:id", putUser)
 
 	r.PATCH("/events/:id", patchEvent)
 	r.PATCH("/users/:id", patchUser)
