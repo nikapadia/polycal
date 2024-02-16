@@ -34,35 +34,7 @@ func getUsers(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "Unable to get users"})
 		return
 	}
-	/* db, exists := c.MustGet("db").(*database.DB)
-	if !exists {
-		c.JSON(500, gin.H{"error": "db not found"})
-		return
-	}
 
-	rows, err := db.Pool().Query(context.Background(), "SELECT * FROM users ORDER BY id ASC")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
-		c.JSON(500, gin.H{"error": "Query failed"})
-	}
-	defer rows.Close()
-	var users []User
-	for rows.Next() {
-		var user User
-		err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Scan failed: %v\n", err)
-			os.Exit(1)
-		}
-		users = append(users, user)
-
-	}
-
-	if err := rows.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error occurred during iteration: %v\n", err)
-		os.Exit(1)
-	}
-	*/
 	c.JSON(200, users)
 }
 
@@ -306,27 +278,6 @@ func patchUser(c *gin.Context) {
 
 	c.JSON(200, updatedUser)
 
-	/* query := "UPDATE users SET "
-	args := []interface{}{}
-	i := 1
-
-	for key, value := range user {
-		query += fmt.Sprintf("%s=$%d, ", key, i)
-		args = append(args, value)
-		i++
-	}
-
-	query = strings.TrimSuffix(query, ", ")
-	query += " WHERE id=$" + strconv.Itoa(i)
-	args = append(args, id)
-
-	_, err := db.Pool().Exec(context.Background(), query, args...)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
-		c.JSON(500, gin.H{"error": "Update failed"})
-		return
-	} */
-
 	c.JSON(200, gin.H{"status": "User updated successfully"})
 }
 
@@ -338,15 +289,21 @@ func deleteEvent(c *gin.Context) {
 		return
 	}
 
-	id := c.Param("id")
-	if id == "" {
+	handler := user.Handler{DB: db}
+
+	idStr := c.Param("id")
+	if idStr == "" {
 		c.JSON(400, gin.H{"error": "id is required"})
 		return
 	}
-
-	_, err := db.Pool().Exec(context.Background(), "DELETE FROM events WHERE id = $1", id)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Delete failed: %v\n", err)
+		c.JSON(400, gin.H{"error": "Improper id format"})
+		return
+	}
+
+	err = handler.DeleteUser(id)
+	if err != nil {
 		c.JSON(500, gin.H{"error": "Delete failed"})
 		return
 	}

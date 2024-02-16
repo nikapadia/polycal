@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"server/database"
+	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -48,51 +51,31 @@ func (h *Handler) CreateUser(user User) (*User, error) {
 	return &user, nil
 }
 
-func (h *Handler) UpdateUser(id int, args map[string]interface{}) (*User, error) {
-	user := User{}
-	setters := map[string]func(*User, interface{}){
-		"id": func(u *User, v interface{}) {
-			if id, ok := v.(float64); ok {
-				u.ID = int(id)
-			}
-		},
-		"first_name": func(u *User, v interface{}) {
-			if firstName, ok := v.(string); ok {
-				u.FirstName = firstName
-			}
-		},
-		"last_name": func(u *User, v interface{}) {
-			if lastName, ok := v.(string); ok {
-				u.LastName = lastName
-			}
-		},
-		"email": func(u *User, v interface{}) {
-			if email, ok := v.(string); ok {
-				u.Email = email
-			}
-		},
-		"role": func(u *User, v interface{}) {
-			if role, ok := v.(string); ok {
-				u.Role = role
-			}
-		},
-		"flags": func(u *User, v interface{}) {
-			if flags, ok := v.(map[string]interface{}); ok {
-				u.Flags = flags
-			}
-		},
+func (h *Handler) UpdateUser(id int, updatedFields map[string]interface{}) (*User, error) {
+	var user User
+
+	query := "UPDATE users SET "
+	var args []interface{}
+	i := 1
+
+	for k, v := range updatedFields {
+		query += fmt.Sprintf("%s = $%d, ", k, i)
+		args = append(args, v)
+		i++
 	}
 
-	for key, value := range args {
-		if setter, ok := setters[key]; ok {
-			setter(&user, value)
-		}
-	}
+	query = strings.TrimSuffix(query, ", ")
+	query += fmt.Sprintf(" WHERE id = $%d", i)
+	args = append(args, id)
 
-	_, err := h.DB.Pool().Exec(context.Background(), "UPDATE users SET first_name = $1, last_name = $2, email = $3, role = $4, flags = $5 WHERE id = $6", user.FirstName, user.LastName, user.Email, user.Role, user.Flags, id)
+	query += " RETURNING *"
+
+	row := h.DB.Pool().QueryRow(context.Background(), query, args...)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
 	if err != nil {
-		return nil, fmt.Errorf("error updating user: %w", err)
+		return nil, fmt.Errorf("error scanning user: %w", err)
 	}
+
 	return &user, nil
 }
 
