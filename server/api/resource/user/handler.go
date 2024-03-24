@@ -14,10 +14,14 @@ type Handler struct {
 	DB *database.DB
 }
 
-func (h *Handler) GetUsers() ([]User, error) {
+func New() *Handler {
+	return &Handler{}
+}
+
+func (h *Handler) GetUsers() {
 	rows, err := h.DB.Pool().Query(context.Background(), "SELECT * FROM users ORDER BY id ASC")
 	if err != nil {
-		return nil, fmt.Errorf("error getting users: %w", err)
+		return
 	}
 	defer rows.Close()
 
@@ -26,11 +30,17 @@ func (h *Handler) GetUsers() ([]User, error) {
 		var user User
 		err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.CreatedAt, &user.Flags)
 		if err != nil {
-			return nil, fmt.Errorf("error scanning user: %w", err)
+			fmt.Printf("error scanning user: %v", err)
+			return
 		}
 		users = append(users, user)
 	}
-	return users, nil
+
+	// Do something with users
+	// // For example, print them
+	// for _, user := range users {
+	// 	log.Printf("User: %+v", user)
+	// }
 }
 
 func (h *Handler) GetUserByID(id int) (*User, error) {
