@@ -1,7 +1,5 @@
 // REFERENCE: https://ui.shadcn.com/docs/components/data-table
 
-"use client";
-
 import {useState} from "react";
 import {
     ColumnDef,
@@ -44,7 +42,7 @@ export function DataTable<TData, TValue>({
 
 	const table = useReactTable({
 		columns,
-		data, // TODO: fix this error
+		data,
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,

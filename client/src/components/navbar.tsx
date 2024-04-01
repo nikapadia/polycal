@@ -1,5 +1,4 @@
 "use client";
-import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
     Menubar,
@@ -14,14 +13,13 @@ import { SubmitEvent } from "@/components/submit-event";
 import PolyLogo from "@/assets/poly_logo.png";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAtom } from "jotai";
-import { sidebarOpenAtom } from "@/app/page";
-import { currentDatesAtom, swipeCalendarAtom } from "@/lib/hooks";
+import { sidebarOpenAtom } from "@/routes/index";
+import { currentDatesAtom } from "@/lib/hooks";
 import { format } from "date-fns";
-import { ThemeToggle } from "./theme-toggle";
+// import { ThemeToggle } from "./theme-toggle";
 
 function AuthButton() {
-    const { data: session } = useSession();
-    if (session) {
+    /* if () {
         return (
             <>
                 <Menubar className="border-0 p-0 h-8">
@@ -50,17 +48,18 @@ function AuthButton() {
         return (
             <Button onClick={() => signIn()}>Sign in</Button>        
         )
-    }
+    } */
+    return (
+        <Button onClick={() => {}}>Sign in</Button>
+    )
 }
 
-export default function Navbar() {
+export function Navbar() {
     const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
     const [currentDates, setCurrentDates] = useAtom(currentDatesAtom);
-    const [swipeCalendar, setSwipeCalendar] = useAtom(swipeCalendarAtom);
 
     const updateCurrentDates = (direction: number) => {
         setCurrentDates([new Date(currentDates[0].getFullYear(), currentDates[0].getMonth() + direction, 1), new Date(currentDates[0].getFullYear(), currentDates[0].getMonth() + direction, 31)])
-        setSwipeCalendar(direction);
     }
 
     return (
@@ -71,7 +70,7 @@ export default function Navbar() {
                         <Menu />
                     </div>
                     <a href="/" className="flex items-center">
-                        <img src={PolyLogo.src} alt="logo" className="h-12 w-auto rounded-md" />
+                        <img src={PolyLogo} alt="logo" className="h-12 w-auto rounded-md" />
                         <span className="text-4xl pl-1">olycal</span>
                     </a>
                     <div className="flex ml-14 justify-center items-center">
