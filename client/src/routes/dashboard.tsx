@@ -15,7 +15,7 @@ export function Dashboard() {
 
     useEffect(() => {
         async function getEventData(): Promise<Event[]> {
-            const response = await fetch("http://localhost:8080/events");
+            const response = await fetch("http://localhost:8080/events?limit=25&offset=0");
         
             return response.json().then((data) => data.map((item: any) => {
                 return {

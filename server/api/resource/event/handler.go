@@ -36,21 +36,31 @@ func (h *Handler) GetEvents(c *gin.Context) {
 	start_date := c.Query("start_date")
 	end_date := c.Query("end_date")
 	status := c.Query("status")
+	limit := c.Query("limit")
+	offset := c.Query("offset")
 
 	query := "SELECT id, title, description, start_date, end_date, location, status, flags FROM events"
-	args := []interface{}{}
+	var conditions []string
+	var args []interface{}
 
-	if start_date != "" && end_date != "" && status != "" {
-		query += " WHERE start_date BETWEEN $1 AND $2 AND status = $3 ORDER BY id ASC"
-		args = append(args, start_date, end_date, status)
-	} else if start_date != "" && end_date != "" {
-		query += " WHERE start_date BETWEEN $1 AND $2 ORDER BY id ASC"
+	if start_date != "" && end_date != "" {
+		conditions = append(conditions, "start_date BETWEEN $1 AND $2")
 		args = append(args, start_date, end_date)
-	} else if status != "" {
-		query += " WHERE status = $1 ORDER BY id ASC"
+	}
+
+	if status != "" {
+		conditions = append(conditions, "status = $"+strconv.Itoa(len(args)+1))
 		args = append(args, status)
-	} else {
-		query += " ORDER BY id ASC"
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	query += " ORDER BY id ASC"
+
+	if limit != "" && offset != "" {
+		query += " LIMIT " + limit + " OFFSET " + offset
 	}
 
 	// query += " LIMIT 100" // Temporary limit
