@@ -1,14 +1,15 @@
-"use client";
-import { use, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "./data-table";
-import { Event, ColumnsEvents } from "./columns-events";
-import { User, ColumnsUsers } from "./columns-users";
+import { DataTable } from "@/components/dashboard/data-table";
+import { Event, ColumnsEvents } from "@/components/dashboard/columns-events";
+import { User, ColumnsUsers } from "@/components/dashboard/columns-users";
+import { createFileRoute } from "@tanstack/react-router";
 
+export const Route = createFileRoute('/dashboard')({
+    component: Dashboard,
+})
 
-export default function Dashboard() {
-    const { data: session } = useSession()
+export function Dashboard() {
     const [eventData, setEventData] = useState<Event[]>([]);
     const [userData, setUserData] = useState<User[]>([]);
 
@@ -56,7 +57,7 @@ export default function Dashboard() {
             <div className="space-y-0.5">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
                 <p className="text-gray-500">
-                    Welcome back, {session?.user?.name ?? "user"}!
+                    Welcome back!
                 </p>
             </div>
             <DataTable columns={ColumnsEvents} data={eventData} />

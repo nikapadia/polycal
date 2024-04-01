@@ -1,11 +1,16 @@
-"use client"
+import { createFileRoute } from '@tanstack/react-router'
 import { Calendar }  from "@/components/calendar"
 import { Sidebar } from "@/components/sidebar"
 import { atom, useAtom } from "jotai"
 
+export const Route = createFileRoute('/')({
+  component: Index,
+})
+
+
 export const sidebarOpenAtom = atom<boolean>(true);
 
-export default function Home() {
+export default function Index() {
     const [sidebarOpen] = useAtom<boolean>(sidebarOpenAtom);
     return (
         <div>
