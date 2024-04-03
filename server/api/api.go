@@ -1,11 +1,14 @@
 package api
 
 import (
+	"fmt"
+	"os"
 	"server/api/resource/event"
 	"server/api/resource/user"
 	"server/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/markbates/goth/gothic"
 )
 
 func SetupRouter(db *database.DB) *gin.Engine {
@@ -33,6 +36,30 @@ func SetupRouter(db *database.DB) *gin.Engine {
 	r.PATCH("/events/:id", eventHandler.UpdateEvent)
 	r.DELETE("/events/:id", eventHandler.DeleteEvent)
 
+	r.GET("/auth/google/callback", getAuthCallback)
+	r.GET("/auth/google", beginAuthHandler)
+
 	return r
 
+}
+
+func beginAuthHandler(c *gin.Context) {
+	// provider := c.Param("provider")
+	c.JSON(200, gin.H{"message": "beginAuthHandler"})
+	gothic.BeginAuthHandler(c.Writer, c.Request)
+}
+
+func getAuthCallback(c *gin.Context) {
+	// provider := c.Param("provider")
+
+	user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	fmt.Println(user)
+
+	// redirect to localhost
+	c.Redirect(200, "http://localhost:5173")
 }

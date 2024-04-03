@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"fmt"
+	"log"
 	"os"
 
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
@@ -35,6 +36,8 @@ func NewAuth() {
 
 	gothic.Store = store
 	goth.UseProviders(
-		google.New(googleClientId, googleClientSecret, "http://localhost:3000/auth/google/callback"),
+		google.New(googleClientId, googleClientSecret, "http://localhost:5173/auth/google/callback"),
 	)
+
+	fmt.Fprintln(os.Stdout, "Auth initialized")
 }

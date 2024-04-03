@@ -50,7 +50,10 @@ function AuthButton() {
         )
     } */
     return (
-        <Button onClick={() => {}}>Sign in</Button>
+        <Button onClick={() => {
+            window.location.href = "/auth/google";
+
+        }}>Sign in</Button>
     )
 }
 
