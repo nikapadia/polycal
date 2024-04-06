@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"server/api"
-	"server/auth"
 	"server/database"
 )
 
@@ -17,7 +16,7 @@ func main() {
 	}
 	defer db.Close()
 
-	auth.NewAuth()
+	// auth.NewAuth()
 	r := api.SetupRouter(db)
 
 	r.Run(":8080")

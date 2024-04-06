@@ -19,41 +19,24 @@ import { format } from "date-fns";
 // import { ThemeToggle } from "./theme-toggle";
 
 function AuthButton() {
-    /* if () {
-        return (
-            <>
-                <Menubar className="border-0 p-0 h-8">
-                    <MenubarMenu>
-                        <MenubarTrigger className="p-0 cursor-pointer focus:bg-transparent focus:text-transparent data-[state=open]:bg-neutral-200 rounded-full data-[state=open]:text-transparent">
-                            <div className="p-1">
-                                <img src={session?.user?.image ?? ""} alt="avatar" className="rounded-full w-8 h-8 outline-none"/>
-                            </div>
-                        </MenubarTrigger>
-                        <MenubarContent align="end">
-                            <a href="/dashboard">
-                            <MenubarItem>
-                                    Dashboard
-                            </MenubarItem>
-                            </a>
-                            <MenubarItem>Profile</MenubarItem>
-                            <MenubarSeparator />
-                            <MenubarItem onClick={() => signOut()}>Sign out</MenubarItem>
-                        </MenubarContent>
-                    </MenubarMenu>
-                </Menubar>
-            </>
-
-        )
-    } else {
-        return (
-            <Button onClick={() => signIn()}>Sign in</Button>        
-        )
-    } */
+    const handleLogin = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/auth/google', {
+                method: 'GET',
+                headers: {
+                    // Specify the OAuth provider as a header
+                    'X-Provider': 'google',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+        } catch (error) {
+            console.error('There was an error!', error);
+        }
+    }
     return (
-        <Button onClick={() => {
-            window.location.href = "/auth/google";
-
-        }}>Sign in</Button>
+        <Button onClick={handleLogin}>Sign in</Button>
     )
 }
 

@@ -1,14 +1,16 @@
 package api
 
 import (
-	"fmt"
 	"os"
 	"server/api/resource/event"
 	"server/api/resource/user"
 	"server/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
+	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/google"
 )
 
 func SetupRouter(db *database.DB) *gin.Engine {
@@ -20,6 +22,26 @@ func SetupRouter(db *database.DB) *gin.Engine {
 		c.Set("db", db)
 		c.Next()
 	})
+
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
+
+	gothic.Store = sessions.NewCookieStore([]byte("a-state-of-entropy"))
+
+	goth.UseProviders(
+		google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), "http://localhost:8080/auth/google/callback"),
+	)
 
 	userHandler := user.Handler{DB: db}
 	eventHandler := event.Handler{DB: db}
@@ -44,22 +66,25 @@ func SetupRouter(db *database.DB) *gin.Engine {
 }
 
 func beginAuthHandler(c *gin.Context) {
-	// provider := c.Param("provider")
-	c.JSON(200, gin.H{"message": "beginAuthHandler"})
+	provider := c.GetHeader("X-Provider")
+	if provider == "" {
+		c.String(400, "Provider not specified")
+		return
+	}
+
+	// You can add validation to ensure the provider is valid if needed
+	// For now, assuming it's always 'google'
+
 	gothic.BeginAuthHandler(c.Writer, c.Request)
 }
 
 func getAuthCallback(c *gin.Context) {
-	// provider := c.Param("provider")
-
 	user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		// Handle error
+		c.String(500, "Error: %v", err)
 		return
 	}
-
-	fmt.Println(user)
-
-	// redirect to localhost
-	c.Redirect(200, "http://localhost:5173")
+	// Handle successful authentication
+	c.String(200, "Logged in as "+user.Name)
 }
