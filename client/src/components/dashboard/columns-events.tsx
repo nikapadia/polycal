@@ -74,27 +74,27 @@ export const ColumnsEvents: ColumnDef<Event>[] = [
             )
           },
     },
-    {
-        header: "Description",
-        accessorKey: "description",
-        cell: ({ row }) => {
-            const event = row.original
-            return (
-                <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
-                    <TooltipProvider delayDuration={200}>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span className="truncate">{event.description}</span>
-                            </TooltipTrigger>
-                            <TooltipContent align="start" className="max-w-96">
-                                <span>{event.description}</span>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            )
-          },
-    },
+    // {
+    //     header: "Description",
+    //     accessorKey: "description",
+    //     cell: ({ row }) => {
+    //         const event = row.original
+    //         return (
+    //             <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
+    //                 <TooltipProvider delayDuration={200}>
+    //                     <Tooltip>
+    //                         <TooltipTrigger asChild>
+    //                             <span className="truncate">{event.description}</span>
+    //                         </TooltipTrigger>
+    //                         <TooltipContent align="start" className="max-w-96">
+    //                             <span>{event.description}</span>
+    //                         </TooltipContent>
+    //                     </Tooltip>
+    //                 </TooltipProvider>
+    //             </div>
+    //         )
+    //       },
+    // },
     {
         accessorKey: "start_date",
         header: ({ column }) => {
@@ -112,14 +112,18 @@ export const ColumnsEvents: ColumnDef<Event>[] = [
         cell: ({ row }) => {
             const event = row.original
             return (
-                <div className="flex flex-col max-w-52 overflow-hidden">
+                <div className="flex flex-col max-w-64 overflow-hidden">
                     <TooltipProvider delayDuration={200}>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span className="truncate">{format(event.start_date, "eee, PPp")}</span>
+                                <div className="truncate">
+                                    {event.all_day == true && format(event.start_date, "eee, PPp")}
+                                    {!event.all_day && format(event.start_date, "PPp") + " - " + format(event.end_date, "p")}
+                                </div>
+                                {/* <span className="truncate">{format(event.start_date, "PPp")}</span> */}
                             </TooltipTrigger>
                             <TooltipContent align="start" className="">
-                                <span>{format(event.start_date, "PPPPpppp")}</span>
+                                <span>{format(event.start_date, "eee, PPp")} - {format(event.end_date, "eee, PPp")}</span>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

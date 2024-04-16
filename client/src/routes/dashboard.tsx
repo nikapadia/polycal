@@ -15,7 +15,7 @@ export function Dashboard() {
 
     useEffect(() => {
         async function getEventData(): Promise<Event[]> {
-            const response = await fetch("http://localhost:8080/events?limit=25&offset=0");
+            const response = await fetch("http://localhost:8080/events");
         
             return response.json().then((data) => data.map((item: any) => {
                 return {
@@ -34,7 +34,7 @@ export function Dashboard() {
         getEventData().then((data) => setEventData(data));
     }, []);
 
-    /* useEffect(() => {
+    useEffect(() => {
         async function getUserData(): Promise<User[]> {
             const response = await fetch("http://localhost:8080/users");
         
@@ -50,7 +50,7 @@ export function Dashboard() {
         }
 
         getUserData().then((data) => setUserData(data));
-    }, []); */
+    }, []);
 
     return (
         <div className="hidden space-y-6 p-8 md:block">
@@ -61,7 +61,7 @@ export function Dashboard() {
                 </p>
             </div>
             <DataTable columns={ColumnsEvents} data={eventData} />
-            {/* <DataTable columns={ColumnsUsers} data={userData} /> */}
+            <DataTable columns={ColumnsUsers} data={userData} />
         </div>
     );
 }

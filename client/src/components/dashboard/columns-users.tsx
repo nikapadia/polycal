@@ -65,18 +65,17 @@ export const ColumnsUsers: ColumnDef<User>[] = [
         cell: ({ row }) => {
             const user = row.original
             return (
-                <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
+                <div className="flex flex-col min-w-16 max-w-16 overflow-hidden">
                     <TooltipProvider delayDuration={200}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span className="truncate">{user.first_name}</span>
                             </TooltipTrigger>
-                            <TooltipContent align="start" className="max-w-96">
+                            <TooltipContent align="start" className="max-w-16">
                                 <span>{user.first_name}</span>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    <span className="text-gray-500 text-xs">User ID: {user.id}</span>
                 </div>
             )
           },
@@ -98,13 +97,13 @@ export const ColumnsUsers: ColumnDef<User>[] = [
         cell: ({ row }) => {
             const user = row.original
             return (
-                <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
+                <div className="flex flex-col min-w-16 max-w-16 overflow-hidden">
                     <TooltipProvider delayDuration={200}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span className="truncate">{user.last_name}</span>
                             </TooltipTrigger>
-                            <TooltipContent align="start" className="max-w-96">
+                            <TooltipContent align="start" className="max-w-16">
                                 <span>{user.last_name}</span>
                             </TooltipContent>
                         </Tooltip>
@@ -130,7 +129,7 @@ export const ColumnsUsers: ColumnDef<User>[] = [
         cell: ({ row }) => {
             const user = row.original
             return (
-                <div className="flex flex-col max-w-52 overflow-hidden">
+                <div className="flex flex-col max-w-32 overflow-hidden">
                     <TooltipProvider delayDuration={200}>
                         <Tooltip>
                             <TooltipTrigger asChild>
