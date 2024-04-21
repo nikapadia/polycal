@@ -2,6 +2,7 @@ package api
 
 import (
 	"server/api/resource/event"
+	queue "server/api/resource/eventqueue"
 	"server/api/resource/user"
 	"server/database"
 
@@ -20,6 +21,7 @@ func SetupRouter(db *database.DB) *gin.Engine {
 
 	userHandler := user.Handler{DB: db}
 	eventHandler := event.Handler{DB: db}
+	queueHandler := queue.Handler{DB: db}
 
 	r.GET("/users", userHandler.GetUsers)
 	r.GET("/users/:id", userHandler.GetUserByID)
@@ -32,6 +34,14 @@ func SetupRouter(db *database.DB) *gin.Engine {
 	r.POST("/events", eventHandler.CreateEvent)
 	r.PATCH("/events/:id", eventHandler.UpdateEvent)
 	r.DELETE("/events/:id", eventHandler.DeleteEvent)
+
+	r.GET("/queue", queueHandler.GetQueue)
+	r.GET("/queue/:id", queueHandler.GetEventByID)
+	r.POST("/queue", queueHandler.CreateEvent)
+	r.PATCH("/queue/:id", queueHandler.UpdateEvent)
+	r.PATCH("/queue/:id/approve", queueHandler.ApproveEvent)
+	r.PATCH("/queue/:id/reject", queueHandler.RejectEvent)
+	r.DELETE("/queue/:id", queueHandler.DeleteEvent)
 
 	return r
 

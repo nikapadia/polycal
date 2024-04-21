@@ -57,9 +57,9 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div>
-            <div className="flex items-center py-4 gap-3">
+            <div className="flex items-center gap-3">
                 <div className="relative max-w-sm">
-                    <Input
+                    {/* <Input
                         placeholder="Search..."
                         value={(table.getColumn(sortBy)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
@@ -67,10 +67,10 @@ export function DataTable<TData, TValue>({
                         }
                         className="pl-10" // Add left padding to make room for the icon
                     />
-                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" /> */}
                 </div>
                 {/* Make a select for changing the filter */}
-                <Select onValueChange={setSortBy} value={sortBy}>
+                {/* <Select onValueChange={setSortBy} value={sortBy}>
                     <SelectTrigger className="w-48 flex items-center relative">
                         <Filter className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <div className="pl-10">
@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
                             <SelectItem value="status">Status</SelectItem>
                         </SelectGroup>
                     </SelectContent>
-                </Select>
+                </Select> */}
             </div>
 			<div className="rounded-md border">
 				<Table>

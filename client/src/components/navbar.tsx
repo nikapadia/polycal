@@ -16,6 +16,7 @@ import { useAtom } from "jotai";
 import { sidebarOpenAtom } from "@/routes/index";
 import { currentDatesAtom } from "@/lib/hooks";
 import { format } from "date-fns";
+import { toast } from "sonner";
 // import { ThemeToggle } from "./theme-toggle";
 
 function AuthButton() {

@@ -10,7 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from "@/components/ui/tooltip";
-import {format} from "date-fns";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 export type Event = {
     id: number;
@@ -19,38 +20,69 @@ export type Event = {
     start_date: Date;
     end_date: Date;
     location?: string;
-    status?: string;
     all_day?: boolean;
 };
 
-export const ColumnsEvents: ColumnDef<Event>[] = [
+async function approveEvent(event: Event) {
+    const response = fetch(`http://localhost:8080/queue/${event.id}/approve`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+    });
+    if (await response) {
+        toast.success("Event approved");
+    } else {
+        toast.error("Error approving event");
+    }
+}
+
+async function rejectEvent(event: Event) {
+    const response = fetch(`http://localhost:8080/queue/${event.id}/reject`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+    });
+    if (await response) {
+        toast.success("Event rejected");
+    } else {
+        toast.error("Error rejecting event");
+    }
+}
+
+export const ColumnsQueue: ColumnDef<Event>[] = [
+
+    // make a function that approves or rejects the event
+
     {
         id: "actions",
         cell: ({ row }) => {
             const event = row.original
        
             return (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(event.id.toString())}
-                  >
-                    Copy event ID
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>View user</DropdownMenuItem>
-                  <DropdownMenuItem>View event details</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => approveEvent(event)}>
+                            Accept
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => rejectEvent(event)}>
+                            Reject
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             )
-          },
+        }
     },
     {
         header: "Event Name",
@@ -74,27 +106,27 @@ export const ColumnsEvents: ColumnDef<Event>[] = [
             )
           },
     },
-    // {
-    //     header: "Description",
-    //     accessorKey: "description",
-    //     cell: ({ row }) => {
-    //         const event = row.original
-    //         return (
-    //             <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
-    //                 <TooltipProvider delayDuration={200}>
-    //                     <Tooltip>
-    //                         <TooltipTrigger asChild>
-    //                             <span className="truncate">{event.description}</span>
-    //                         </TooltipTrigger>
-    //                         <TooltipContent align="start" className="max-w-96">
-    //                             <span>{event.description}</span>
-    //                         </TooltipContent>
-    //                     </Tooltip>
-    //                 </TooltipProvider>
-    //             </div>
-    //         )
-    //       },
-    // },
+    {
+        header: "Description",
+        accessorKey: "description",
+        cell: ({ row }) => {
+            const event = row.original
+            return (
+                <div className="flex flex-col min-w-96 max-w-96 overflow-hidden">
+                    <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="truncate">{event.description}</span>
+                            </TooltipTrigger>
+                            <TooltipContent align="start" className="max-w-96">
+                                <span>{event.description}</span>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            )
+          },
+    },
     {
         accessorKey: "start_date",
         header: ({ column }) => {

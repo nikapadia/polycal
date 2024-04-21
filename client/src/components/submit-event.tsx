@@ -86,7 +86,7 @@ export function SubmitEvent() {
         event.end_date = end_date.toISOString();
 
         // console.log(event);
-        const response = await fetch("http://localhost:8080/events", {
+        const response = await fetch("http://localhost:8080/queue", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
